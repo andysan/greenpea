@@ -1,0 +1,34 @@
+Summary: PDP12 emulator
+Name: @PACKAGE@
+Version: @VERSION@
+Release: 0
+Copyright: GPL
+Group: Applications/Emulators
+Source0: %{name}-%{version}.tar.gz
+# URL: http://somewhere
+BuildRoot: %{_tmppath}/%{name}-root
+Prefix: %{_prefix}
+
+%description
+Software and utitlities that emulates the DEC PDP12.
+
+%prep
+%setup
+
+%build
+%configure
+make
+
+%install
+%makeinstall
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+%{prefix}/bin/*
+
+%doc AUTHORS COPYING INSTALL NEWS README ChangeLog
+
+%changelog

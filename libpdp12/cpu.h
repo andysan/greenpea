@@ -1,0 +1,103 @@
+
+#ifndef _CPU_H
+#define _CPU_H
+
+/* Amount of memory allways availible to the CPU (in words) */
+#define CPU_CORE_SIZE 4096
+
+
+#define CPU_LINC_SEG_SIZE (0177)
+
+/* The following are register locations in the instrcution field
+   of a LINC-program. Note that some registers overlap.
+*/
+#define CPU_LINC_IF_RET_ADDR (00)
+#define CPU_LINC_IF_DSC_HORIZONTAL (01)
+#define CPU_LINC_IF_BETA (01)
+#define CPU_LINC_IF_ALFA (00)
+
+/* The following LINC-registers are located in instruction segment 0
+   ie C(IF) = 00.
+ */
+#define CPU_LINC_ABS_TRAP_RET (0140)
+#define CPU_LINC_ABS_TRAP (0141)
+#define CPU_LINC_ABS_INT_RET (0040)
+#define CPU_LINC_ABS_INT (0040)
+
+
+
+typedef int CPU_REG12;
+typedef int CPU_REG6;
+typedef int CPU_REG5;
+typedef int CPU_REG3;
+typedef int CPU_REG1;
+
+typedef enum {
+  CPU_FLAGS_SKIP     = 1,   /* Skip Flip-Flop set */
+  CPU_FLAGS_FLO      = 2,   /* Overflow Flip-Flop set */
+  CPU_FLAGS_8MODE    = 4,   /* Processor is in PDP-8 Mode */
+  CPU_FLAGS_LINCMODE = 8,   /* Processor is in Linc Mode */
+  CPU_FLAGS_RUN      = 16,  /* Processor is running */
+  CPU_FLAGS_AUTO     = 32,  /* Auto Restart Flip-Flop is set */
+  CPU_FLAGS_TRAP     = 64,  /* Instruction trap is enabled */
+  CPU_FLAGS_INTPAUSE = 128, /* An internal pause is occuring */
+  CPU_FLAGS_ION      = 256, /* Program Interrupt facility enabled */
+  CPU_FLAGS_IOPAUSE  = 512  /* An I/O Pause is occuring */
+} cpu_flags;
+
+typedef enum {
+  CPU_STATE_F   = 1,
+  CPU_STATE_D   = 2,
+  CPU_STATE_E   = 4,
+  CPU_STATE_E2  = 8,
+  CPU_STATE_INT = 16,
+  CPU_STATE_WC  = 32,
+  CPU_STATE_CA  = 64,
+  CPU_STATE_B   = 128,
+  CPU_STATE_TB  = 256
+} cpu_states;
+
+typedef struct {
+  CPU_REG12 ac;     /* Accumulator */
+  CPU_REG1  l;      /* Link (AC extension) */
+  CPU_REG12 mq;     /* Multiplier Quotient */
+  CPU_REG12 pc;     /* Program Counter */
+
+  CPU_REG12 ir;     /* Instruction register */
+#if 0
+  CPU_REG12 ma;     /* Memory address register */
+  CPU_REG12 mb;     /* Memory Buffer */
+#endif
+
+  CPU_REG5  ifr;    /* Instruction Field Register */
+  CPU_REG5  df;     /* Data Field Register */
+  
+  CPU_REG6  relays; /* Register holding relay status */
+  
+  cpu_flags flags;
+  cpu_flags state ;
+  
+  CPU_REG12 ls;     /* Left Switches */
+  CPU_REG12 rs;     /* Right Switches */
+  CPU_REG3  ifs;    /* Instruction Field Switches */
+  CPU_REG6   ss;    /* Sense Switches */
+  
+  int core[CPU_CORE_SIZE];
+} cpu_instance;
+
+cpu_instance* cpu_create();
+void cpu_destroy(cpu_instance* cpu);
+
+void cpu_exec(cpu_instance* cpu);
+
+void cpu_set_ac(cpu_instance* cpu, int ac);
+void cpu_set_pc(cpu_instance* cpu, int pc);
+void cpu_set_ca(cpu_instance* cpu);
+
+void cpu_clear_ca(cpu_instance* cpu);
+
+void cpu_write(cpu_instance* cpu, int ma, int mb);
+
+int cpu_read(cpu_instance* cpu, int ma);
+
+#endif
