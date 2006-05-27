@@ -1,5 +1,5 @@
-#ifndef _PDP12C_H
-#define _PDP12C_H
+#ifndef _READLN_H
+#define _READLN_H
 
 #ifdef HAVE_LIBREADLINE
 #  if defined(HAVE_READLINE_READLINE_H)
@@ -11,8 +11,7 @@ extern char *readline ();
 #  endif /* !defined(HAVE_READLINE_H) */
 #else /* !defined(HAVE_READLINE_READLINE_H) */
 /* no readline */
-#define MAX_CMD_LENGTH (1024)
-
+#define readline(p) readln_basic(p)
 #endif /* HAVE_LIBREADLINE */
 
 #ifdef HAVE_READLINE_HISTORY
@@ -27,6 +26,5 @@ extern int read_history ();
 #  endif /* defined(HAVE_READLINE_HISTORY_H) */
 /* no history */
 #endif /* HAVE_READLINE_HISTOY */
-
 
 #endif

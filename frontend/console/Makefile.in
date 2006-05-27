@@ -54,7 +54,8 @@ am_paperdump_OBJECTS = paperdump.$(OBJEXT)
 paperdump_OBJECTS = $(am_paperdump_OBJECTS)
 paperdump_DEPENDENCIES = $(top_builddir)/libdecutils/libdecutils.a \
 	$(top_builddir)/liblog/liblog.a
-am_pdp12c_OBJECTS = pdp12c.$(OBJEXT)
+am_pdp12c_OBJECTS = pdp12c.$(OBJEXT) shell.$(OBJEXT) readln.$(OBJEXT) \
+	parser.$(OBJEXT)
 pdp12c_OBJECTS = $(am_pdp12c_OBJECTS)
 pdp12c_DEPENDENCIES = $(top_builddir)/libpdp12/libpdp12.a \
 	$(top_builddir)/libdecutils/libdecutils.a \
@@ -144,7 +145,11 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-pdp12c_SOURCES = pdp12c.c
+pdp12c_SOURCES = pdp12c.c 				\
+	shell.c shell.h					\
+	readln.h readln.c				\
+	parser.c parser.h
+
 pdp12c_LDADD = \
 	$(top_builddir)/libpdp12/libpdp12.a 		\
 	$(top_builddir)/libdecutils/libdecutils.a	\
@@ -228,7 +233,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paperdump.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdp12c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readln.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shell.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
