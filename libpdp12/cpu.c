@@ -13,6 +13,7 @@ cpu_instance* cpu_create() {
   cpu->ac = 0;
   cpu->l = 0;
   cpu->pc = 0;
+  cpu->mq = 0;
   cpu->ir = 0;
   cpu->ifr = 0;
   cpu->df = 0;
