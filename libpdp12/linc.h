@@ -31,21 +31,21 @@
 #define LINC_OP_DSC (074 >> 2)
 
 /* Misc and indirect alpha addressing instuctions */
-#define LINC_OPX1   (000 >> 2)
-#define LINC_OP_SET (004 >> 2)
-#define LINC_OP_SAM (010 >> 2)
-#define LINC_OP_DIS (014 >> 2)
-#define LINC_OP_XSK (020 >> 2)
-#define LINC_OP_ROL (024 >> 2)
-#define LINC_OP_ROR (030 >> 2)
-#define LINC_OP_SCR (034 >> 2)
-#define LINC_OPX2   (040 >> 2)
-#define LINC_OPX3   (044 >> 2)
-#define LINC_OPX4   (050 >> 2)
+#define LINC_OP_EXT1 (000 >> 2)
+#define LINC_OP_SET  (004 >> 2)
+#define LINC_OP_SAM  (010 >> 2)
+#define LINC_OP_DIS  (014 >> 2)
+#define LINC_OP_XSK  (020 >> 2)
+#define LINC_OP_ROL  (024 >> 2)
+#define LINC_OP_ROR  (030 >> 2)
+#define LINC_OP_SCR  (034 >> 2)
+#define LINC_OP_EXT2 (040 >> 2)
+#define LINC_OP_EXT3 (044 >> 2)
+#define LINC_OP_EXT4 (050 >> 2)
 /* #define LINC_OP_    (054 >> 2) */
-#define LINC_OP_LIF (060 >> 2)
-#define LINC_OP_LDF (064 >> 2)
-#define LINC_OPX5   (070 >> 2)
+#define LINC_OP_LIF  (060 >> 2)
+#define LINC_OP_LDF  (064 >> 2)
+#define LINC_OP_EXT5 (070 >> 2)
 /* #define LINC_OP_    (074 >> 2) */
 
 
@@ -59,5 +59,10 @@
 #define LINC_OPX1_NOP (00016)
 #define LINC_OPX1_COM (00017)
 #define LINC_OPX1_SFA (00024)
+
+void linc_exec(cpu_instance* cpu);
+void linc_inc_pc(cpu_instance* cpu);
+int linc_read(cpu_instance* cpu, int addr);
+void linc_write(cpu_instance* cpu, int addr, int data);
 
 #endif

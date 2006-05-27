@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 
+#include <liblog/log.h>
+
 #include "cpu.h"
 #include "pdp8.h"
 #include "linc.h"
@@ -16,7 +18,7 @@ cpu_instance* cpu_create() {
   cpu->mq = 0;
   cpu->ir = 0;
   cpu->ifr = 0;
-  cpu->df = 0;
+  cpu->dfr = 0;
   cpu->relays = 0;
   
   /* State */
@@ -39,8 +41,12 @@ void cpu_destroy(cpu_instance* cpu) {
 }
 
 void cpu_exec(cpu_instance* cpu) {
-  cpu->ir = cpu_read(cpu, cpu->pc);
-  cpu_linc_exec(cpu);
+  if(cpu->flags & CPU_FLAGS_LINCMODE) {
+    cpu->ir = linc_read(cpu, cpu->pc);
+    linc_exec(cpu);
+  } else {
+    lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
+  }
 }
 
 void cpu_set_ac(cpu_instance* cpu, int ac) {
@@ -61,18 +67,20 @@ void cpu_clear_ca(cpu_instance* cpu) {
 
 void cpu_write(cpu_instance* cpu, int ma, int mb) {
   /* TODO: Do something useful after outputing error. */
-  if(ma < CPU_CORE_SIZE)
-    fprintf(stderr, "Address out of range in cpu_write.\n");
+  lprintf(LOG_DEBUG, "cpu_write: %.4o %.4o\n", ma, mb);
+  if(ma > CPU_CORE_SIZE)
+    lprintf(LOG_ERROR, "Address out of range in cpu_write.\n");
   else if(mb > 07777)
-    fprintf(stderr, "Illegal word size in cpu_write.\n");
+    lprintf(LOG_ERROR, "Illegal word size in cpu_write.\n");
   else
     cpu->core[ma] = mb;
 }
 
 int cpu_read(cpu_instance* cpu, int ma) {
   /* TODO: Do something useful after outputing error. */
+  lprintf(LOG_DEBUG, "cpu_read: %.4o\n", ma);
   if(ma > CPU_CORE_SIZE) {
-    fprintf(stderr, "Address out of range in cpu_read.\n");
+    lprintf(LOG_ERROR, "Address out of range in cpu_read.\n");
     return 0;
   } else {
     return cpu->core[ma];

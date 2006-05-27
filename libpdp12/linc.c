@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <liblog/log.h>
 #include "cpu.h"
 #include "linc.h"
 
@@ -50,7 +51,7 @@ static const char* mnemonics_b[] = {"LDA",
 				    "---",
 				    "DSC"};
 
-static const char* mnemonics_a[] = {"OPX1",
+static const char* mnemonics_a[] = {"EXT1",
 				    "SET",
 				    "SAM",
 				    "DIS",
@@ -58,19 +59,32 @@ static const char* mnemonics_a[] = {"OPX1",
 				    "ROL",
 				    "ROR",
 				    "SCR",
-				    "OPX2",
-				    "OPX3",
-				    "OPX4",
+				    "EXT2",
+				    "EXT3",
+				    "EXT4",
 				    "---",
 				    "LIF",
 				    "LDF",
-				    "OPX5",
+				    "EXT5",
 				    "---"};
 
-static void cpu_linc_inc_pc(cpu_instance* cpu) {
-  /* TODO: Check if this is correct in regards to segments */
+void linc_inc_pc(cpu_instance* cpu) {
   cpu_set_pc(cpu, 
 	     cpu->pc > CPU_LINC_SEG_SIZE ? 0 : cpu->pc + 1);
+}
+
+
+int linc_read(cpu_instance* cpu, int addr) {
+  return cpu_read(cpu,
+		  (addr & 01777) | 
+		  (addr & 02000 ? cpu->dfr : cpu->ifr) << 10);
+}
+
+void linc_write(cpu_instance* cpu, int addr, int data) {
+  cpu_write(cpu,
+	    (addr & 01777) | 
+	    (addr & 02000 ? cpu->dfr : cpu->ifr) << 10,
+	    data);
 }
 
 /*
@@ -93,17 +107,17 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
   int temp;
   if(b == 0) {
     temp = cpu->pc;
-    cpu_linc_inc_pc(cpu);
+    linc_inc_pc(cpu);
     
     if(i)
       return temp;
     else
-      return cpu_read(cpu, temp) & 03777;
+      return linc_read(cpu, temp) & 03777;
   } else {
-    temp = cpu_read(cpu, b);
+    temp = linc_read(cpu, b);
     if(i) {
       temp = ((temp + 1) & 01777) | (temp & 06000);
-      cpu_write(cpu, b, temp);
+      linc_write(cpu, b, temp);
     }
     
     return temp & 03777;
@@ -111,12 +125,12 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
 }
 
 static int beta_read(cpu_instance* cpu, int i, int b) {
-  return cpu_read(cpu, 
+  return linc_read(cpu, 
 		  beta_addr(cpu, i, b));
 }
 
 static void beta_write(cpu_instance* cpu, int i, int b, int data) {
-  cpu_write(cpu, 
+  linc_write(cpu, 
 	    beta_addr(cpu, i, b),
 	    data);
 }
@@ -126,23 +140,39 @@ static void beta_write(cpu_instance* cpu, int i, int b, int data) {
 
 /*
  * Add to Accumulator (Direct Address)
+ * Addition is done using 1's complement.
  */
 INSTRUCTION_D(ADD) {
-
+  int t;
+  t = cpu->ac + linc_read(cpu, addr);
+  if(t & 010000)
+    t = t & 07777 + 1;
+  cpu_set_ac(cpu, t);
 }
 
 /*
  * Add to Accumulator (B-class)
+ * Addition is done using 1's complement.
  */
 INSTRUCTION_B(ADA) {
-
+  int t;
+  t = cpu->ac + beta_read(cpu, i, b);
+  if(t & 010000)
+    t = t & 07777 + 1;
+  cpu_set_ac(cpu, t);
 }
 
 /*
  * Add to Memory
+ * Addition is done using 1's complement.
  */
 INSTRUCTION_B(ADM) {
-
+  int t;
+  t = cpu->ac + beta_read(cpu, i, b);
+  if(t & 010000)
+    t = t & 07777 + 1;
+  cpu_set_ac(cpu, t);
+  beta_write(cpu, i, b, t);
 }
 
 /*
@@ -178,7 +208,7 @@ INSTRUCTION_B(LDH) {
  * Store and Clear
  */
 INSTRUCTION_D(STC) {
-  cpu_write(cpu, addr, cpu->ac);
+  linc_write(cpu, addr, cpu->ac);
   cpu_set_ac(cpu, 0);
 }
 
@@ -223,7 +253,7 @@ INSTRUCTION_A(SCR) {
  * Misc A instructions class 1
  * htl, esf, qac, djr, clr, atr, rta, nop, com, sfa
  */
-INSTRUCTION_A(OPX1) {
+INSTRUCTION_A(EXT1) {
 
 }
 
@@ -281,14 +311,14 @@ INSTRUCTION_B(SHD) {
  * Misc A instructions class 3
  * SNS, SKP, AZE, APO, LZE, IBZ, FLO, QLZ
  */
-INSTRUCTION_A(OPX3) {
+INSTRUCTION_A(EXT3) {
 }
 
 /*
  * Misc A instructions class 2
  * SXL, KST
  */
-INSTRUCTION_A(OPX2) {
+INSTRUCTION_A(EXT2) {
 }
 
 /*
@@ -331,7 +361,7 @@ INSTRUCTION_B(DSC) {
  * Misc A instructions class 4
  * IOB, RSW, LSW
  */
-INSTRUCTION_A(OPX4) {
+INSTRUCTION_A(EXT4) {
 
 }
 
@@ -353,7 +383,7 @@ INSTRUCTION_A(LDF) {
  * Misc A instructions class 5
  * Mainly LINC TAPE
  */
-INSTRUCTION_A(OPX5) {
+INSTRUCTION_A(EXT5) {
 
 }
 
@@ -363,14 +393,14 @@ INSTRUCTION_A(OPX5) {
  * +-----+-----------------------+
  */
 static void instr_direct(cpu_instance* cpu, int op, int addr) {
-  fprintf(stderr, "%s 0%o\n", mnemonics_d[op], addr);
+  lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_d[op], addr);
   
   switch(op) {
     CASE_D(ADD);
     CASE_D(STC);
     CASE_D(JMP);
   default:
-    fprintf(stderr, "Illegal LINC instruction  in instr_direct!\n");
+    lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_direct!\n");
     break;
   }
 }
@@ -382,10 +412,30 @@ static void instr_direct(cpu_instance* cpu, int op, int addr) {
  */
 static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   if(i)
-    fprintf(stderr, "%s I 0%o\n", mnemonics_a[op], a);
+    lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_a[op], a);
   else
-    fprintf(stderr, "%s 0%o\n", mnemonics_a[op], a);
+    lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_a[op], a);
   
+
+  switch(op) {
+    CASE_A(EXT1);
+    CASE_A(SET);
+    CASE_A(SAM);
+    CASE_A(DIS);
+    CASE_A(XSK);
+    CASE_A(ROL);
+    CASE_A(ROR);
+    CASE_A(SCR);
+    CASE_A(EXT2);
+    CASE_A(EXT3);
+    CASE_A(EXT4);
+    CASE_A(LIF);
+    CASE_A(LDF);
+    CASE_A(EXT5);
+  default:
+    lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
+    break;
+  }
 }
 
 /* +-------+---------+---+-----------+
@@ -395,16 +445,37 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
  */
 static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
   if(i)
-    fprintf(stderr, "%s I 0%o\n", mnemonics_b[op], b);
+    lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_b[op], b);
   else
-    fprintf(stderr, "%s 0%o\n", mnemonics_b[op], b);
+    lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_b[op], b);
   
+  
+  switch(op) {
+    CASE_B(LDA);
+    CASE_B(STA);
+    CASE_B(ADA);
+    CASE_B(ADM);
+    CASE_B(LAM);
+    CASE_B(MUL);
+    CASE_B(LDH);
+    CASE_B(STH);
+    CASE_B(SHD);
+    CASE_B(SAE);
+    CASE_B(SRO);
+    CASE_B(BCL);
+    CASE_B(BSE);
+    CASE_B(BCO);
+    CASE_B(DSC);
+  default:
+    lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_beta!\n");
+    break;
+  }
 }
 
-void cpu_linc_exec(cpu_instance* cpu) {
-  fprintf(stderr, "cpu_linc_exec pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
+void linc_exec(cpu_instance* cpu) {
+  lprintf(LOG_DEBUG, "linc_exec pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
   
-  cpu_linc_inc_pc(cpu);
+  linc_inc_pc(cpu);
   
   switch(cpu->ir & 07000) {
   case LINC_CLASS_ALPHA:

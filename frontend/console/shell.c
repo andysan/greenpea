@@ -25,10 +25,12 @@ void cmd_exit(int argc, char** argp, void* data) {
 void cmd_state(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   
-  printf("IR: %.4o MQ: %.4o\n"
-	 "PC: %.4o AC: %.4o\n",
+  printf("IR: %.4o\tMQ: %.4o\n"
+	 "PC: %.4o\tAC: %.4o\n"
+	 "IF: %.2o\t\tDF: %.2o\n",
 	 cpu->ir, cpu->mq,
-	 cpu->pc, cpu->ac);
+	 cpu->pc, cpu->ac,
+	 cpu->ifr, cpu->dfr);
 }
 
 void cmd_load(int argc, char** argp, void* data) {
@@ -74,6 +76,10 @@ void cmd_set(int argc, char** argp, void* data) {
     cpu->pc = value;
   else if(!strcmp(reg, "ac"))
     cpu->ac = value;
+  else if(!strcmp(reg, "if"))
+    cpu->ifr = value;
+  else if(!strcmp(reg, "df"))
+    cpu->dfr = value;
   else
     lprintf(LOG_ERROR, "Invalid register specified!\n");
 }
@@ -81,9 +87,22 @@ void cmd_set(int argc, char** argp, void* data) {
 void cmd_dump(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   int i;
+  int start, end;
   
-  for(i = 0; i < CPU_CORE_SIZE; i++) {
-    if(i % 020 == 0)
+  if(sscanf(argp[1], "%i", &start) != 1 ||
+     start >= CPU_CORE_SIZE) {
+    lprintf(LOG_ERROR, "Illegal start address received.\n");
+    return;
+  }
+
+  if(sscanf(argp[2], "%i", &end) != 1 || 
+     end >= CPU_CORE_SIZE || end < start) {
+    lprintf(LOG_ERROR, "Illegal end address received.\n");
+    return;
+  }
+  
+  for(i = start; i <= end; i++) {
+    if(i % 010 == 0)
       printf("\n%.4o: ", i);
     
     printf(" %.4o", cpu->core[i]);
@@ -99,7 +118,7 @@ const parser_command cmds[] = {
   {"set", 2, &cmd_set, "Sets a processor register.",
    "set REGISTER VALUE\nSets REGISTER to the value VALUE."},
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},
-  {"dump", 0, &cmd_dump, "Dumps the core to the console.", NULL},
+  {"dump", 2, &cmd_dump, "Dumps the core to the console.", NULL},
   {NULL, 0, NULL, NULL}
 };
 

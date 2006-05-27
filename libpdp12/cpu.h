@@ -3,10 +3,10 @@
 #define _CPU_H
 
 /* Amount of memory allways availible to the CPU (in words) */
-#define CPU_CORE_SIZE 4096
+#define CPU_CORE_SIZE 32768
 
 
-#define CPU_LINC_SEG_SIZE (0177)
+#define CPU_LINC_SEG_SIZE (01777)
 
 /* The following are register locations in the instrcution field
    of a LINC-program. Note that some registers overlap.
@@ -70,7 +70,7 @@ typedef struct {
 #endif
 
   CPU_REG5  ifr;    /* Instruction Field Register */
-  CPU_REG5  df;     /* Data Field Register */
+  CPU_REG5  dfr;     /* Data Field Register */
   
   CPU_REG6  relays; /* Register holding relay status */
   
