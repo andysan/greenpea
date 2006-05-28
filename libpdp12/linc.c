@@ -107,7 +107,6 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
   int temp;
   if(b == 0) {
     temp = cpu->pc;
-    linc_inc_pc(cpu);
     
     if(i)
       return temp;
@@ -136,6 +135,17 @@ static void beta_write(cpu_instance* cpu, int i, int b, int data) {
 }
 
 
+/* Sign is stored in the highest bit, 
+   if op1 && op2 have the same sign and
+   the results have a different sign, then
+   overflow has occured. */
+void check_overflow(cpu_instance* cpu, int op1, int op2, int res) {
+  if((op1 & 04000) == (op2 & 04000) &&
+     (res & 04000) != (op1 & 04000))
+    cpu_set_flag(cpu, CPU_FLAGS_FLO);
+  else
+    cpu_clear_flag(cpu, CPU_FLAGS_FLO);
+}
 
 
 /*
@@ -143,10 +153,14 @@ static void beta_write(cpu_instance* cpu, int i, int b, int data) {
  * Addition is done using 1's complement.
  */
 INSTRUCTION_D(ADD) {
-  int t;
-  t = cpu->ac + linc_read(cpu, addr);
+  int op1 = cpu->ac;
+  int op2 = linc_read(cpu, addr);
+  int t = op1 + op2;
+  
   if(t & 010000)
-    t = t & 07777 + 1;
+    t = (t & 07777) + 1;
+  
+  check_overflow(cpu, op1, op2, t);
   cpu_set_ac(cpu, t);
 }
 
@@ -155,10 +169,14 @@ INSTRUCTION_D(ADD) {
  * Addition is done using 1's complement.
  */
 INSTRUCTION_B(ADA) {
-  int t;
-  t = cpu->ac + beta_read(cpu, i, b);
+  int op1 = cpu->ac;
+  int op2 = beta_read(cpu, i, b);
+  int t = op1 + op2;
+  
   if(t & 010000)
-    t = t & 07777 + 1;
+    t = (t & 07777) + 1;
+  
+  check_overflow(cpu, op1, op2, t);
   cpu_set_ac(cpu, t);
 }
 
@@ -167,10 +185,14 @@ INSTRUCTION_B(ADA) {
  * Addition is done using 1's complement.
  */
 INSTRUCTION_B(ADM) {
-  int t;
-  t = cpu->ac + beta_read(cpu, i, b);
+  int op1 = cpu->ac;
+  int op2 = beta_read(cpu, i, b);
+  int t = op1 + op2;
+  
   if(t & 010000)
-    t = t & 07777 + 1;
+    t = (t & 07777) + 1;
+  
+  check_overflow(cpu, op1, op2, t);
   cpu_set_ac(cpu, t);
   beta_write(cpu, i, b, t);
 }
@@ -179,14 +201,24 @@ INSTRUCTION_B(ADM) {
  * Add to Memory
  */
 INSTRUCTION_B(LAM) {
-
+  int t = cpu->ac + 
+    cpu->l + 
+    beta_read(cpu, i, b);
+  
+  cpu_set_l(cpu, 
+	    (t & 030000) ? 1 : 0);
+  
+  t &= 07777;
+  cpu_set_ac(cpu, t);
+  beta_write(cpu, i, b, t);
 }
 
 /*
  * Multiply
  */
 INSTRUCTION_B(MUL) {
-
+  /* TODO: Implement this instruction... */
+  lprintf(LOG_ERROR, "LINC instruction MUL not implemented.\n");
 }
 
 /*
@@ -231,7 +263,7 @@ INSTRUCTION_B(STH) {
  * Rotate left
  */
 INSTRUCTION_A(ROL) {
-
+  
 }
 
 /*
@@ -275,28 +307,35 @@ INSTRUCTION_D(JMP) {
  * Bit Clear
  */
 INSTRUCTION_B(BCL) {
-
+  cpu_set_ac(cpu, 
+	     cpu->ac & ~beta_read(cpu, i, b));
 }
 
 /*
  * Bit Set
  */
 INSTRUCTION_B(BSE) {
-
+  cpu_set_ac(cpu, 
+	     cpu->ac | beta_read(cpu, i, b));
 }
 
 /*
  * Bit Complement
  */
 INSTRUCTION_B(BCO) {
-
+  cpu_set_ac(cpu, 
+	     cpu->ac ^ beta_read(cpu, i, b));  
 }
 
 /*
  * Skip on AC == Y
  */
 INSTRUCTION_B(SAE) {
-
+  /*
+    TODO: Check what happens on a real PDP12 when
+    the next instruction takes up 2 words. */
+  if(cpu->ac == beta_read(cpu, i, b))
+    linc_inc_pc(cpu);
 }
 
 /*
@@ -470,10 +509,13 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_beta!\n");
     break;
   }
+  
+  if(b == 0)
+    linc_inc_pc(cpu);
 }
 
-void linc_exec(cpu_instance* cpu) {
-  lprintf(LOG_DEBUG, "linc_exec pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
+void linc_step(cpu_instance* cpu) {
+  lprintf(LOG_DEBUG, "linc_step pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
   
   linc_inc_pc(cpu);
   

@@ -22,7 +22,7 @@ cpu_instance* cpu_create() {
   cpu->relays = 0;
   
   /* State */
-  cpu->flags = CPU_FLAGS_LINCMODE;
+  cpu->flags = 0;
   cpu->state = CPU_STATE_B;
   
   /* Switches */
@@ -40,29 +40,44 @@ void cpu_destroy(cpu_instance* cpu) {
   free(cpu);
 }
 
-void cpu_exec(cpu_instance* cpu) {
-  if(cpu->flags & CPU_FLAGS_LINCMODE) {
-    cpu->ir = linc_read(cpu, cpu->pc);
-    linc_exec(cpu);
-  } else {
+void cpu_step(cpu_instance* cpu) {
+  if(cpu->flags & CPU_FLAGS_8MODE) {
     lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
+  } else {
+    cpu->ir = linc_read(cpu, cpu->pc);
+    linc_step(cpu);
   }
 }
 
 void cpu_set_ac(cpu_instance* cpu, int ac) {
+  lprintf(LOG_DEBUG, "cpu_set_ac %.4o\n", ac);
   cpu->ac = ac;
 }
 
 void cpu_set_pc(cpu_instance* cpu, int pc) {
+  lprintf(LOG_DEBUG, "cpu_set_pc %.4o\n", pc);
   cpu->pc = pc;
 }
 
-void cpu_set_ca(cpu_instance* cpu) {
-  cpu->state |= CPU_STATE_CA;
+void cpu_set_l(cpu_instance* cpu, int l) {
+  lprintf(LOG_DEBUG, "cpu_set_l %i\n", l);
+  cpu->l = l;
 }
 
-void cpu_clear_ca(cpu_instance* cpu) {
-  cpu->state &= ~CPU_STATE_CA;
+void cpu_set_state(cpu_instance* cpu, cpu_states s) {
+  cpu->state |= s;
+}
+
+void cpu_clear_state(cpu_instance* cpu, cpu_states s) {
+  cpu->state &= ~s;
+}
+
+void cpu_set_flag(cpu_instance* cpu, cpu_flags f) {
+  cpu->flags |= f;
+}
+
+void cpu_clear_flag(cpu_instance* cpu, cpu_flags f) {
+  cpu->flags &= ~f;
 }
 
 void cpu_write(cpu_instance* cpu, int ma, int mb) {

@@ -60,7 +60,7 @@
 #define LINC_OPX1_COM (00017)
 #define LINC_OPX1_SFA (00024)
 
-void linc_exec(cpu_instance* cpu);
+void linc_step(cpu_instance* cpu);
 void linc_inc_pc(cpu_instance* cpu);
 int linc_read(cpu_instance* cpu, int addr);
 void linc_write(cpu_instance* cpu, int addr, int data);

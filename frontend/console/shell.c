@@ -31,6 +31,11 @@ void cmd_state(int argc, char** argp, void* data) {
 	 cpu->ir, cpu->mq,
 	 cpu->pc, cpu->ac,
 	 cpu->ifr, cpu->dfr);
+  
+  printf("FLO: %i 8MODE: %i\n",
+ 	 cpu->flags & CPU_FLAGS_FLO ? 1 : 0,
+ 	 cpu->flags & CPU_FLAGS_8MODE ? 1 : 0);
+	 
 }
 
 void cmd_load(int argc, char** argp, void* data) {
@@ -59,29 +64,37 @@ void cmd_load(int argc, char** argp, void* data) {
 }
 
 void cmd_step(int argc, char** argp, void* data) {
-  cpu_exec(((cmd_data*)data)->cpu);
+  cpu_step(((cmd_data*)data)->cpu);
 }
 
 void cmd_set(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   char* reg = argp[1];
   int value;
+  int addr;
   
   if(sscanf(argp[2], "%i", &value) != 1) {
     lprintf(LOG_ERROR, "Invalid value specified!\n");
     return;
   }
   
-  if(!strcmp(reg, "pc"))
-    cpu->pc = value;
-  else if(!strcmp(reg, "ac"))
-    cpu->ac = value;
-  else if(!strcmp(reg, "if"))
-    cpu->ifr = value;
-  else if(!strcmp(reg, "df"))
-    cpu->dfr = value;
-  else
-    lprintf(LOG_ERROR, "Invalid register specified!\n");
+  if(sscanf(argp[1], "%i", &addr) == 1) {
+    if(addr >= 0 && addr < CPU_CORE_SIZE)
+      cpu->core[addr] = value;
+    else
+      lprintf(LOG_ERROR, "Invalid address.\n");
+  } else {
+    if(!strcmp(reg, "pc"))
+      cpu->pc = value;
+    else if(!strcmp(reg, "ac"))
+      cpu->ac = value;
+    else if(!strcmp(reg, "if"))
+      cpu->ifr = value;
+    else if(!strcmp(reg, "df"))
+      cpu->dfr = value;
+    else
+      lprintf(LOG_ERROR, "Invalid register specified!\n");
+  }
 }
 
 void cmd_dump(int argc, char** argp, void* data) {
@@ -115,7 +128,7 @@ const parser_command cmds[] = {
   {"state", 0, &cmd_state, "Prints the CPU state.", NULL},
   {"load", 1, &cmd_load, "Loads a paper tape into memory.",
    "load FILENAME\nLoads FILENAME into memory."},
-  {"set", 2, &cmd_set, "Sets a processor register.",
+  {"set", 2, &cmd_set, "Sets a processor register or memory address.",
    "set REGISTER VALUE\nSets REGISTER to the value VALUE."},
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},
   {"dump", 2, &cmd_dump, "Dumps the core to the console.", NULL},
