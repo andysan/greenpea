@@ -62,7 +62,7 @@ void cpu_set_ca(cpu_instance* cpu) {
 }
 
 void cpu_clear_ca(cpu_instance* cpu) {
-  cpu->state |= !CPU_STATE_CA;
+  cpu->state &= ~CPU_STATE_CA;
 }
 
 void cpu_write(cpu_instance* cpu, int ma, int mb) {
