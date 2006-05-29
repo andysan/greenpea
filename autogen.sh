@@ -1,4 +1,5 @@
 #!/bin/sh
 
-ACLOCAL_AMFLAGS="-I m4" autoreconf -i -Wall -s
+cat m4/* > acinclude.m4
+autoreconf -i -s -Wall
 ./configure
