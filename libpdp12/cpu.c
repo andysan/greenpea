@@ -61,9 +61,14 @@ void cpu_set_pc(cpu_instance* cpu, int pc) {
   cpu->pc = pc;
 }
 
+void cpu_set_mq(cpu_instance* cpu, int mq) {
+  lprintf(LOG_DEBUG, "cpu_set_mq %.4o\n", mq);
+  cpu->mq = mq;
+}
+
 void cpu_set_l(cpu_instance* cpu, int l) {
   lprintf(LOG_DEBUG, "cpu_set_l %i\n", l);
-  cpu->l = l;
+  cpu->l = l ? 1 : 0;
 }
 
 void cpu_set_state(cpu_instance* cpu, cpu_states s) {

@@ -27,13 +27,12 @@ void cmd_state(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   
   printf("IR: %.4o\tMQ: %.4o\n"
-	 "PC: %.4o\tAC: %.4o\n"
-	 "IF: %.2o\t\tDF: %.2o\n",
+	 "PC: %.4o\tAC: %.4o\n LINK: %o"
+	 "IF: %.2o\t\tDF: %.2o\n"
+	 "FLO: %i 8MODE: %i\n",
 	 cpu->ir, cpu->mq,
-	 cpu->pc, cpu->ac,
-	 cpu->ifr, cpu->dfr);
-  
-  printf("FLO: %i 8MODE: %i\n",
+	 cpu->pc, cpu->ac, cpu->l,
+	 cpu->ifr, cpu->dfr,
  	 cpu->flags & CPU_FLAGS_FLO ? 1 : 0,
  	 cpu->flags & CPU_FLAGS_8MODE ? 1 : 0);
 	 

@@ -27,7 +27,8 @@
 #define LINC_OP_BCL (054 >> 2)
 #define LINC_OP_BSE (060 >> 2)
 #define LINC_OP_BCO (064 >> 2)
-/*  #define LINC_OP_    (070 >> 2) */
+/* Completely reserved for traps. */
+#define LINC_OP_TRAP1 (070 >> 2)
 #define LINC_OP_DSC (074 >> 2)
 
 /* Misc and indirect alpha addressing instuctions */
@@ -39,14 +40,29 @@
 #define LINC_OP_ROL  (024 >> 2)
 #define LINC_OP_ROR  (030 >> 2)
 #define LINC_OP_SCR  (034 >> 2)
-#define LINC_OP_EXT2 (040 >> 2)
-#define LINC_OP_EXT3 (044 >> 2)
-#define LINC_OP_EXT4 (050 >> 2)
-/* #define LINC_OP_    (054 >> 2) */
+/* Predefined mnemonics:
+   KST: SXL 15
+   STD: SXL 16
+   TWC: SXL 17
+*/
+#define LINC_OP_SXL (040 >> 2)
+/* Skip instructions */
+#define LINC_OP_EXT2 (044 >> 2)
+/* 0500 is IOB, 501-515 & 521-535 are traps.
+   TODO: Check the rest.
+*/
+#define LINC_OP_EXT3  (050 >> 2)
+/* Completely reserved for TRAPS */
+#define LINC_OP_TRAP2 (054 >> 2)
 #define LINC_OP_LIF  (060 >> 2)
 #define LINC_OP_LDF  (064 >> 2)
-#define LINC_OP_EXT5 (070 >> 2)
-/* #define LINC_OP_    (074 >> 2) */
+/* Tape instructions */
+#define LINC_OP_TAPE (070 >> 2)
+/* According to the manual, 0740-0747 are reserved
+   for instruction traps.
+   TODO: Check what the other 0740-0770 does.
+*/
+#define LINC_OP_EXT4 (074 >> 2)
 
 
 #define LINC_OPX1_HLT (00000)

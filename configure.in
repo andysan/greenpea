@@ -14,6 +14,8 @@ if test x$enable_readline != xno; then
    VL_LIB_READLINE
 fi
 
+CFLAGS="$CFLAGS -Wall -Werror"
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile]
 		[pdp12-emu.spec]

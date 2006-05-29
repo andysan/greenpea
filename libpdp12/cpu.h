@@ -91,6 +91,7 @@ void cpu_step(cpu_instance* cpu);
 
 void cpu_set_ac(cpu_instance* cpu, int ac);
 void cpu_set_pc(cpu_instance* cpu, int pc);
+void cpu_set_mq(cpu_instance* cpu, int mq);
 void cpu_set_l(cpu_instance* cpu, int l);
 void cpu_set_state(cpu_instance* cpu, cpu_states s);
 void cpu_set_flag(cpu_instance* cpu, cpu_flags s);

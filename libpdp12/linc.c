@@ -8,10 +8,10 @@
   static void instr_ ## mn(cpu_instance* cpu, int addr)
 
 #define INSTRUCTION_A(mn) \
-  static void instr_ ## mn(cpu_instance* cpu, int i, int a)
+  static void instr_ ## mn(cpu_instance* cpu, int i, int a, int ia)
 
 #define INSTRUCTION_B(mn) \
-  static void instr_ ## mn (cpu_instance* cpu, int i, int b)
+  static void instr_ ## mn (cpu_instance* cpu, int addr)
 
 #define CASE_D(mn) \
   case LINC_OP_ ## mn: \
@@ -20,12 +20,12 @@
 
 #define CASE_A(mn) \
   case LINC_OP_ ## mn: \
-    instr_ ## mn (cpu, i, a); \
+    instr_ ## mn (cpu, i, a, ia); \
     break;
 
 #define CASE_B(mn) \
   case LINC_OP_ ## mn: \
-    instr_ ## mn (cpu, i, b); \
+    instr_ ## mn (cpu, addr); \
     break;
 
 
@@ -59,14 +59,14 @@ static const char* mnemonics_a[] = {"EXT1",
 				    "ROL",
 				    "ROR",
 				    "SCR",
+				    "SXL",
 				    "EXT2",
 				    "EXT3",
-				    "EXT4",
-				    "---",
+				    "TRAP2",
 				    "LIF",
 				    "LDF",
-				    "EXT5",
-				    "---"};
+				    "TAPE",
+				    "EXT4"};
 
 void linc_inc_pc(cpu_instance* cpu) {
   cpu_set_pc(cpu, 
@@ -111,7 +111,7 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
     if(i)
       return temp;
     else
-      return linc_read(cpu, temp) & 03777;
+      return linc_read(cpu, temp);
   } else {
     temp = linc_read(cpu, b);
     if(i) {
@@ -119,21 +119,9 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
       linc_write(cpu, b, temp);
     }
     
-    return temp & 03777;
+    return temp;
   }
 }
-
-static int beta_read(cpu_instance* cpu, int i, int b) {
-  return linc_read(cpu, 
-		  beta_addr(cpu, i, b));
-}
-
-static void beta_write(cpu_instance* cpu, int i, int b, int data) {
-  linc_write(cpu, 
-	    beta_addr(cpu, i, b),
-	    data);
-}
-
 
 /* Sign is stored in the highest bit, 
    if op1 && op2 have the same sign and
@@ -170,7 +158,7 @@ INSTRUCTION_D(ADD) {
  */
 INSTRUCTION_B(ADA) {
   int op1 = cpu->ac;
-  int op2 = beta_read(cpu, i, b);
+  int op2 = linc_read(cpu, addr);
   int t = op1 + op2;
   
   if(t & 010000)
@@ -186,7 +174,7 @@ INSTRUCTION_B(ADA) {
  */
 INSTRUCTION_B(ADM) {
   int op1 = cpu->ac;
-  int op2 = beta_read(cpu, i, b);
+  int op2 = linc_read(cpu, addr);
   int t = op1 + op2;
   
   if(t & 010000)
@@ -194,7 +182,7 @@ INSTRUCTION_B(ADM) {
   
   check_overflow(cpu, op1, op2, t);
   cpu_set_ac(cpu, t);
-  beta_write(cpu, i, b, t);
+  linc_write(cpu, addr, t);
 }
 
 /*
@@ -203,36 +191,71 @@ INSTRUCTION_B(ADM) {
 INSTRUCTION_B(LAM) {
   int t = cpu->ac + 
     cpu->l + 
-    beta_read(cpu, i, b);
+    linc_read(cpu, addr);
   
   cpu_set_l(cpu, 
 	    (t & 030000) ? 1 : 0);
   
   t &= 07777;
   cpu_set_ac(cpu, t);
-  beta_write(cpu, i, b, t);
+  linc_write(cpu, addr, t);
 }
 
 /*
  * Multiply
  */
 INSTRUCTION_B(MUL) {
-  /* TODO: Implement this instruction... */
-  lprintf(LOG_ERROR, "LINC instruction MUL not implemented.\n");
+  /* The multiplication is to be treated as integer
+     multiplication if:
+     * i = 1 && b = 0
+     * The highest bit of the b-register (effective address)
+       is 0.
+       
+     It's however enough to check the highest bit of 
+     the address since it can only be 1 for the
+     under the desired circumstances.
+     
+     TODO: Verify this for i = 0 && b = 0
+  */
+  int op1 = cpu->ac;
+  int op2 = linc_read(cpu, addr);
+  int sign = (op1 & 04000) ^ (op2 & 04000);
+  int t;
+  
+  if(op1 & 04000)
+    op1 = ~op1 & 07777;
+  
+  if(op2 & 04000)
+    op2 = ~op2 & 07777;
+  
+  t = (op1 & 03777) * (op2 & 03777);
+  if(addr & 04000) {
+    printf("Fraction\n");
+    /* Fractional multiplication */
+    cpu_set_ac(cpu,
+	       (((sign ? ~t : t) >> 11) & 03777) | sign);
+  } else {
+    printf("Integer\n");
+    /* Integer multiplication */
+    cpu_set_ac(cpu,
+	       ((sign ? ~t : t) & 03777) | sign);
+  }
+  cpu_set_mq(cpu, (t & 03777) << 1);
+  cpu_set_l(cpu, sign);
 }
 
 /*
  * Load Accumulator
  */
 INSTRUCTION_B(LDA) {
-  cpu_set_ac(cpu, beta_read(cpu, i, b));
+  cpu_set_ac(cpu, linc_read(cpu, addr));
 }
 
 /*
  * Load Accumulator (half)
  */
 INSTRUCTION_B(LDH) {
-  cpu_set_ac(cpu, beta_read(cpu, i, b));
+  cpu_set_ac(cpu, linc_read(cpu, addr));
 }
 
 
@@ -249,14 +272,14 @@ INSTRUCTION_D(STC) {
  * Store Accumulator
  */
 INSTRUCTION_B(STA) {
-  beta_write(cpu, i, b, cpu->ac);	     
+  linc_write(cpu, addr, cpu->ac);	     
 }
 
 /*
  * Store Accumulator (half)
  */
 INSTRUCTION_B(STH) {
-  beta_write(cpu, i, b, cpu->ac);	     
+  linc_write(cpu, addr, cpu->ac);	     
 }
 
 /*
@@ -280,12 +303,10 @@ INSTRUCTION_A(SCR) {
 
 }
 
-
 /*
- * Misc A instructions class 1
- * htl, esf, qac, djr, clr, atr, rta, nop, com, sfa
+ * Scale right
  */
-INSTRUCTION_A(EXT1) {
+INSTRUCTION_A(SXL) {
 
 }
 
@@ -308,7 +329,7 @@ INSTRUCTION_D(JMP) {
  */
 INSTRUCTION_B(BCL) {
   cpu_set_ac(cpu, 
-	     cpu->ac & ~beta_read(cpu, i, b));
+	     cpu->ac & ~linc_read(cpu, addr));
 }
 
 /*
@@ -316,7 +337,7 @@ INSTRUCTION_B(BCL) {
  */
 INSTRUCTION_B(BSE) {
   cpu_set_ac(cpu, 
-	     cpu->ac | beta_read(cpu, i, b));
+	     cpu->ac | linc_read(cpu, addr));
 }
 
 /*
@@ -324,7 +345,7 @@ INSTRUCTION_B(BSE) {
  */
 INSTRUCTION_B(BCO) {
   cpu_set_ac(cpu, 
-	     cpu->ac ^ beta_read(cpu, i, b));  
+	     cpu->ac ^ linc_read(cpu, addr));  
 }
 
 /*
@@ -334,7 +355,7 @@ INSTRUCTION_B(SAE) {
   /*
     TODO: Check what happens on a real PDP12 when
     the next instruction takes up 2 words. */
-  if(cpu->ac == beta_read(cpu, i, b))
+  if(cpu->ac == linc_read(cpu, addr))
     linc_inc_pc(cpu);
 }
 
@@ -343,21 +364,8 @@ INSTRUCTION_B(SAE) {
  * half of memory register Y.
  */
 INSTRUCTION_B(SHD) {
-
-}
-
-/*
- * Misc A instructions class 3
- * SNS, SKP, AZE, APO, LZE, IBZ, FLO, QLZ
- */
-INSTRUCTION_A(EXT3) {
-}
-
-/*
- * Misc A instructions class 2
- * SXL, KST
- */
-INSTRUCTION_A(EXT2) {
+  /* TODO: Check what this instruction really does... */
+  lprintf(LOG_ERROR, "SHD instruction not implented...\n");
 }
 
 /*
@@ -365,6 +373,13 @@ INSTRUCTION_A(EXT2) {
  * if bit 0 of Y equals 0, skip next.
  */
 INSTRUCTION_B(SRO) {
+  int op = linc_read(cpu, addr);
+  
+  if(op & 01) {
+    linc_write(cpu, addr,
+	       (op >> 1) | ((op & 1) << 11));
+    linc_inc_pc(cpu);
+  }
 }
 
 /*
@@ -393,15 +408,7 @@ INSTRUCTION_A(DIS) {
  * Display character on oscilloscope.
  */
 INSTRUCTION_B(DSC) {
-
-}
-
-/*
- * Misc A instructions class 4
- * IOB, RSW, LSW
- */
-INSTRUCTION_A(EXT4) {
-
+  /* TODO: Implement the scope... */
 }
 
 /*
@@ -419,10 +426,9 @@ INSTRUCTION_A(LDF) {
 }
 
 /*
- * Misc A instructions class 5
- * Mainly LINC TAPE
+ * LINC TAPE Instructions
  */
-INSTRUCTION_A(EXT5) {
+INSTRUCTION_A(TAPE) {
 
 }
 
@@ -450,14 +456,15 @@ static void instr_direct(cpu_instance* cpu, int op, int addr) {
  * +-------+---------+---+-----------+
  */
 static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
+  int ia = (i << 4) | a;
   if(i)
     lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_a[op], a);
   else
     lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_a[op], a);
   
-
+  
   switch(op) {
-    CASE_A(EXT1);
+    /* CASE_A(EXT1); */
     CASE_A(SET);
     CASE_A(SAM);
     CASE_A(DIS);
@@ -465,12 +472,14 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     CASE_A(ROL);
     CASE_A(ROR);
     CASE_A(SCR);
-    CASE_A(EXT2);
-    CASE_A(EXT3);
-    CASE_A(EXT4);
+    CASE_A(SXL);
+    /* CASE_A(EXT2); */
+    /* CASE_A(EXT3); */
+    /* CASE_A(TRAP2); */
     CASE_A(LIF);
     CASE_A(LDF);
-    CASE_A(EXT5);
+    CASE_A(TAPE);
+    /* CASE_A(EXT4); */
   default:
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
     break;
@@ -483,11 +492,16 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
  * +-------+---------+---+-----------+
  */
 static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
-  if(i)
-    lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_b[op], b);
-  else
-    lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_b[op], b);
+  int addr = beta_addr(cpu, i, b);
   
+  lprintf(LOG_DEBUG, "%s %s 0%o (%.4o)\n",
+	  mnemonics_b[op],
+	  i ? "I" : "",
+	  b,
+	  addr);
+  
+  if(b == 0)
+    linc_inc_pc(cpu);
   
   switch(op) {
     CASE_B(LDA);
@@ -509,9 +523,6 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_beta!\n");
     break;
   }
-  
-  if(b == 0)
-    linc_inc_pc(cpu);
 }
 
 void linc_step(cpu_instance* cpu) {
