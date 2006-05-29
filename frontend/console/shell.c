@@ -3,6 +3,7 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <errno.h>
 
 #include <libpdp12/cpu.h>

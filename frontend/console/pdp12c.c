@@ -3,10 +3,13 @@
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <libpdp12/cpu.h>
 #include <libdecutils/rim.h>
 #include <liblog/log.h>
 #include <argp.h>
+
+#include "shell.h"
 
 const char* argp_program_version =
   "PDP12 simulator version " VERSION ".\n"
