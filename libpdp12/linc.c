@@ -222,14 +222,14 @@ INSTRUCTION_B(MUL) {
   int sign = (op1 & 04000) ^ (op2 & 04000);
   int t;
   
-  if(op1 & 04000)
+  if(op1 & LINC_OP_NEGATIVE)
     op1 = ~op1 & 07777;
   
-  if(op2 & 04000)
+  if(op2 & LINC_OP_NEGATIVE)
     op2 = ~op2 & 07777;
   
   t = (op1 & 03777) * (op2 & 03777);
-  if(addr & 04000) {
+  if(addr & LINC_ADDR_FRACTION) {
     printf("Fraction\n");
     /* Fractional multiplication */
     cpu_set_ac(cpu,
@@ -352,9 +352,6 @@ INSTRUCTION_B(BCO) {
  * Skip on AC == Y
  */
 INSTRUCTION_B(SAE) {
-  /*
-    TODO: Check what happens on a real PDP12 when
-    the next instruction takes up 2 words. */
   if(cpu->ac == linc_read(cpu, addr))
     linc_inc_pc(cpu);
 }
@@ -364,7 +361,13 @@ INSTRUCTION_B(SAE) {
  * half of memory register Y.
  */
 INSTRUCTION_B(SHD) {
-  /* TODO: Check what this instruction really does... */
+  int op = linc_read(cpu, addr);
+  if(!(addr & LINC_ADDR_RIGHT))
+    op = op >> 6;
+  
+  if((op & 077) == (cpu->ac & 077))
+    linc_inc_pc(cpu);
+  
   lprintf(LOG_ERROR, "SHD instruction not implented...\n");
 }
 
