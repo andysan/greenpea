@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <liblog/log.h>
 #include "cpu.h"
@@ -284,37 +285,126 @@ INSTRUCTION_B(STH) {
 
 /*
  * Rotate left
+ * Rotates AC, LINK may be included as the
+ * most significant bit (bit 13).
  */
 INSTRUCTION_A(ROL) {
+  int t = cpu->ac;
+  int r;
   
+  if(i) {
+    /* Rotate AC including LINK */
+    r = a % 13;
+    if(cpu->l)
+      t |= 010000;
+    t = (t << r) | (t >> (13 - r));
+    
+    cpu_set_l(cpu, t & 010000);
+  } else {
+    /* Rotate AC excluding LINK */
+    r = a % 12;
+    t = (t << r) | (t >> (12 - r));
+  }
+  
+  cpu_set_ac(cpu, t & 07777);
 }
 
 /*
  * Rotate right
+ * The AC is rotated and data rotated "out" of
+ * the AC is shifted into MQ. Link may be
+ * included as the most significant bit (13) of AC.
  */
 INSTRUCTION_A(ROR) {
+  int t = cpu->ac;
+  int m = cpu->mq;
+  int r;
 
+  if(i & cpu->l)
+    t |= 010000;
+  
+  if(a < 12)
+    m = (m >> a) | (cpu->ac  << (12 - a));
+  else
+    m = (m >> a) | (cpu->ac  >> (a - 12));
+  
+  if(i) {
+    /* Rotate AC including LINK */
+    r = a % 13;
+    t = (t >> r) | (t << (13 - r));
+    
+    cpu_set_l(cpu, t & 010000);
+  } else {
+    /* Rotate AC excluding LINK */
+    r = a % 12;
+    t = (t >> r) | (t << (12 - r));
+  }
+  
+  cpu_set_mq(cpu, m & 07777);
+  cpu_set_ac(cpu, t & 07777);
 }
 
 /*
  * Scale right
  */
 INSTRUCTION_A(SCR) {
-
+  int t;
+  
+  t = ((cpu->ac << 12) | cpu->mq) >> a;
+  
+  if(cpu->ac & 04000)
+    t |= ((1 << a) - 1) << (24 - a);
+  
+  if(i && a >= 1)
+    cpu_set_l(cpu, t & 04000);
+  
+  cpu_set_ac(cpu, t >> 12);
+  cpu_set_mq(cpu, t & 07777);
 }
 
 /*
- * Scale right
+ * Skip on external level
  */
 INSTRUCTION_A(SXL) {
+  int tst = 1;
+  
+  /* TODO: Implement prewired levels */
+  switch(a) {
+  case 15:
+    /* Key Struck */
+    
+  case 16:
+    /* Tape Instruction done */
 
+  case 17:
+    /* Tape Word Complete */
+    
+  default:
+    lprintf(LOG_WARNING, "Unknown or unimplemented level (%o) in SXL.\n", a);
+    break;
+  }
+  
+  if(i)
+    tst = !tst;
+  
+  if(tst)
+    linc_inc_pc(cpu);
 }
 
 /*
  * Set register N to contents of register Y
  */
 INSTRUCTION_A(SET) {
-
+  int t;
+  if(i)
+    t = linc_read(cpu, cpu->pc);
+  else
+    t = linc_read(cpu,
+		  linc_read(cpu, cpu->pc));
+  
+  cpu_write(cpu, a, t);
+  
+  linc_inc_pc(cpu);
 }
 
 /*
@@ -372,13 +462,15 @@ INSTRUCTION_B(SHD) {
 }
 
 /*
- * Rotate memory register one place; then
- * if bit 0 of Y equals 0, skip next.
+ * Skip and Rotate
+ * If the least significant bit of the operand is 0,
+ * the operand is rotated right 1 place and the
+ * next instruction is skipped.
  */
 INSTRUCTION_B(SRO) {
   int op = linc_read(cpu, addr);
   
-  if(op & 01) {
+  if(!(op & 01)) {
     linc_write(cpu, addr,
 	       (op >> 1) | ((op & 1) << 11));
     linc_inc_pc(cpu);
@@ -390,21 +482,36 @@ INSTRUCTION_B(SRO) {
  * of Y equal 1777.
  */
 INSTRUCTION_A(XSK) {
-
+  int t = linc_read(cpu, a);
+  
+  if(i) {
+    t = ((t + 1) & 01777) | (t & 06000);
+    linc_write(cpu, a, t);
+  }
+  
+  if((t & 01777) == 01777)
+    linc_inc_pc(cpu);
 }
 
 /*
  * Sample analog channel N.
  */
 INSTRUCTION_A(SAM) {
-
+  /* TODO: Implement FAST SAMPLE mode. */
+  int v = cpu_call_sam(cpu, ia);
+  int va = abs(v);
+  
+  if(v > 0)
+    cpu->ac = v > 0777 ? 0777 : va;
+  else
+    cpu->ac = 07000 | ~(v < 0777 ? 0777 : va);
 }
 
 /*
  * Display point on oscilloscope.
  */
 INSTRUCTION_A(DIS) {
-  
+  /* TODO: Implement scope */
 }
 
 /*
@@ -418,21 +525,22 @@ INSTRUCTION_B(DSC) {
  * Load instruction field buffer with N.
  */
 INSTRUCTION_A(LIF) {
-
+  /* TODO: Implement LIF */
 }
 
 /*
  * Load data field register with N.
  */
 INSTRUCTION_A(LDF) {
-
+  /* TODO: Implement LDF */
 }
 
 /*
  * LINC TAPE Instructions
  */
 INSTRUCTION_A(TAPE) {
-
+  /* TODO: Implement LINC TAPE */
+  lprintf(LOG_ERROR, "Tape not implemented!\n");
 }
 
 /* +-----+-----------------------+
@@ -467,7 +575,6 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   
   
   switch(op) {
-    /* CASE_A(EXT1); */
     CASE_A(SET);
     CASE_A(SAM);
     CASE_A(DIS);
@@ -476,13 +583,14 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     CASE_A(ROR);
     CASE_A(SCR);
     CASE_A(SXL);
-    /* CASE_A(EXT2); */
-    /* CASE_A(EXT3); */
-    /* CASE_A(TRAP2); */
     CASE_A(LIF);
     CASE_A(LDF);
     CASE_A(TAPE);
-    /* CASE_A(EXT4); */
+  case LINC_OP_EXT1:
+  case LINC_OP_EXT2:
+  case LINC_OP_EXT3:
+  case LINC_OP_EXT4:
+    break;
   default:
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
     break;

@@ -24,8 +24,6 @@
 #define CPU_LINC_ABS_INT_RET (0040)
 #define CPU_LINC_ABS_INT (0040)
 
-
-
 typedef int CPU_REG12;
 typedef int CPU_REG6;
 typedef int CPU_REG5;
@@ -56,7 +54,19 @@ typedef enum {
   CPU_STATE_TB  = 256
 } cpu_states;
 
-typedef struct {
+typedef struct cpu_callbacks_s cpu_callbacks;
+typedef struct cpu_instance_s cpu_instance;
+
+struct cpu_callbacks_s {
+  int (*get_level)(struct cpu_instance_s* cpu, void* data, int level);
+  void (*update_relays)(struct cpu_instance_s* cpu, void* data);
+  /* Returns a value between -0777 and 0777 */
+  int (*sample_ad)(struct cpu_instance_s* cpu, void* data, int n);
+  
+  void* data;
+};
+
+struct cpu_instance_s {
   CPU_REG12 ac;     /* Accumulator */
   CPU_REG1  l;      /* Link (AC extension) */
   CPU_REG12 mq;     /* Multiplier Quotient */
@@ -81,8 +91,14 @@ typedef struct {
   CPU_REG3  ifs;    /* Instruction Field Switches */
   CPU_REG6   ss;    /* Sense Switches */
   
+  cpu_callbacks* callbacks;
+  
+  /* NULL terminated list of devices attached to the IO bus.
+     NULL if no devices attached. */
+  struct io_device_s** devices;
+  
   int core[CPU_CORE_SIZE];
-} cpu_instance;
+};
 
 cpu_instance* cpu_create();
 void cpu_destroy(cpu_instance* cpu);
@@ -95,6 +111,9 @@ void cpu_set_mq(cpu_instance* cpu, int mq);
 void cpu_set_l(cpu_instance* cpu, int l);
 void cpu_set_state(cpu_instance* cpu, cpu_states s);
 void cpu_set_flag(cpu_instance* cpu, cpu_flags s);
+void cpu_set_relays(cpu_instance* cpu, int r);
+void cpu_set_ifr(cpu_instance* cpu, int n);
+void cpu_set_dfr(cpu_instance* cpu, int n);
 
 void cpu_clear_state(cpu_instance* cpu, cpu_states s);
 void cpu_clear_flag(cpu_instance* cpu, cpu_flags s);
@@ -102,5 +121,9 @@ void cpu_clear_flag(cpu_instance* cpu, cpu_flags s);
 void cpu_write(cpu_instance* cpu, int ma, int mb);
 
 int cpu_read(cpu_instance* cpu, int ma);
+
+int cpu_call_sam(cpu_instance* cpu, int n);
+int cpu_call_ext_level(cpu_instance* cpu, int level);
+
 
 #endif

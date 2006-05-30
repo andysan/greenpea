@@ -33,6 +33,9 @@ cpu_instance* cpu_create() {
   cpu->ifs = 0;
   cpu->ss = 0;
   
+  cpu->devices = NULL;
+  cpu->callbacks = NULL;
+  
   memset(cpu->core, 0, CPU_CORE_SIZE);
   
   return cpu;
@@ -87,6 +90,13 @@ void cpu_clear_flag(cpu_instance* cpu, cpu_flags f) {
   cpu->flags &= ~f;
 }
 
+void cpu_set_relays(cpu_instance* cpu, int r) {
+  cpu->relays = r & 077;
+  if(cpu->callbacks && cpu->callbacks->update_relays)
+    cpu->callbacks->update_relays(cpu,
+				  cpu->callbacks->data);
+}
+
 void cpu_write(cpu_instance* cpu, int ma, int mb) {
   /* TODO: Do something useful after outputing error. */
   lprintf(LOG_DEBUG, "cpu_write: %.4o %.4o\n", ma, mb);
@@ -109,3 +119,21 @@ int cpu_read(cpu_instance* cpu, int ma) {
   }
 }
 
+int cpu_call_sam(cpu_instance* cpu, int n) {
+  if(cpu->callbacks && cpu->callbacks->sample_ad)
+    return cpu->callbacks->sample_ad(cpu,
+				     cpu->callbacks->data,
+				     n);
+  else
+    return 0;
+}
+
+int cpu_call_ext_level(cpu_instance* cpu, int level) {
+  if(cpu->callbacks && cpu->callbacks->get_level)
+    return cpu->callbacks->get_level(cpu,
+				     cpu->callbacks->data,
+				     level);
+  else
+    /* Unknown levels are hardwired to one according to docs. */
+    return 1;
+}

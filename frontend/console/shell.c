@@ -88,6 +88,8 @@ void cmd_set(int argc, char** argp, void* data) {
       cpu->pc = value;
     else if(!strcmp(reg, "ac"))
       cpu->ac = value;
+    else if(!strcmp(reg, "mq"))
+      cpu->mq = value;
     else if(!strcmp(reg, "if"))
       cpu->ifr = value;
     else if(!strcmp(reg, "df"))
