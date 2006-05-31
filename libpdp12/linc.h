@@ -47,11 +47,11 @@
 */
 #define LINC_OP_SXL (040 >> 2)
 /* Skip instructions */
-#define LINC_OP_EXT2 (044 >> 2)
+#define LINC_OP_SKIP (044 >> 2)
 /* 0500 is IOB, 501-515 & 521-535 are traps.
    TODO: Check the rest.
 */
-#define LINC_OP_EXT3  (050 >> 2)
+#define LINC_OP_EXT2  (050 >> 2)
 /* Completely reserved for TRAPS */
 #define LINC_OP_TRAP2 (054 >> 2)
 #define LINC_OP_LIF  (060 >> 2)
@@ -62,7 +62,7 @@
    for instruction traps.
    TODO: Check what the other 0740-0770 does.
 */
-#define LINC_OP_EXT4 (074 >> 2)
+#define LINC_OP_TRAP3 (074 >> 2)
 
 
 #define LINC_OPX1_HLT (00000)
@@ -76,6 +76,16 @@
 #define LINC_OPX1_COM (00017)
 #define LINC_OPX1_SFA (00024)
 
+#define LINC_OPXS_SNS (00000)
+#define LINC_OPXS_AZE (00010)
+#define LINC_OPXS_APO (00011)
+#define LINC_OPXS_LZE (00012)
+#define LINC_OPXS_IBZ (00013)
+#define LINC_OPXS_FLO (00014)
+#define LINC_OPXS_QLZ (00015)
+#define LINC_OPXS_SKP (00016)
+
+#define LINC_OPX2_IOB (00000)
 
 #define LINC_ADDR_FRACTION (04000)
 #define LINC_ADDR_RIGHT  (04000)

@@ -34,12 +34,12 @@ typedef enum {
   CPU_FLAGS_SKIP     = 1,   /* Skip Flip-Flop set */
   CPU_FLAGS_FLO      = 2,   /* Overflow Flip-Flop set */
   CPU_FLAGS_8MODE    = 4,   /* Processor is in PDP-8 Mode */
-  CPU_FLAGS_RUN      = 8,  /* Processor is running */
+  CPU_FLAGS_RUN      = 8,   /* Processor is running */
   CPU_FLAGS_AUTO     = 16,  /* Auto Restart Flip-Flop is set */
   CPU_FLAGS_TRAP     = 32,  /* Instruction trap is enabled */
-  CPU_FLAGS_INTPAUSE = 64, /* An internal pause is occuring */
+  CPU_FLAGS_INTPAUSE = 64,  /* An internal pause is occuring */
   CPU_FLAGS_ION      = 128, /* Program Interrupt facility enabled */
-  CPU_FLAGS_IOPAUSE  = 256  /* An I/O Pause is occuring */
+  CPU_FLAGS_IOPAUSE  = 256, /* An I/O Pause is occuring */
 } cpu_flags;
 
 typedef enum {

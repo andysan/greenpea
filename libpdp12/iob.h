@@ -13,7 +13,7 @@ typedef struct io_device_s{
   void (*reset)(struct cpu_instance_s* cpu, void* data);
 } io_device;
 
-void iob_do(struct cpu_instance_s* cpu);
+void iob_io(struct cpu_instance_s* cpu);
 void iob_reset(struct cpu_instance_s* cpu);
 
 #endif

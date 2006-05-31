@@ -4,12 +4,17 @@
 #include <liblog/log.h>
 #include "cpu.h"
 #include "linc.h"
+#include "iob.h"
 
 #define INSTRUCTION_D(mn) \
   static void instr_ ## mn(cpu_instance* cpu, int addr)
 
 #define INSTRUCTION_A(mn) \
   static void instr_ ## mn(cpu_instance* cpu, int i, int a, int ia)
+
+#define INSTRUCTION_S(mn) \
+  static int instr_ ## mn(cpu_instance* cpu, int a)
+
 
 #define INSTRUCTION_B(mn) \
   static void instr_ ## mn (cpu_instance* cpu, int addr)
@@ -22,6 +27,18 @@
 #define CASE_A(mn) \
   case LINC_OP_ ## mn: \
     instr_ ## mn (cpu, i, a, ia); \
+    break;
+
+#define CASE_OPX(n, mn)					       \
+  case LINC_OPX ## n ## _ ## mn:			       \
+    lprintf(LOG_DEBUG, "mn IA: 0%o\n", ia);                    \
+    instr_ ## mn (cpu, i, a, ia);			       \
+    break;
+
+#define CASE_SKIP(mn)					       \
+  case LINC_OPXS_ ## mn:				       \
+    lprintf(LOG_DEBUG, "mn I: %o\n", i);                       \
+    skip = instr_ ## mn (cpu, a);			       \
     break;
 
 #define CASE_B(mn) \
@@ -52,7 +69,7 @@ static const char* mnemonics_b[] = {"LDA",
 				    "---",
 				    "DSC"};
 
-static const char* mnemonics_a[] = {"EXT1",
+static const char* mnemonics_a[] = {NULL,
 				    "SET",
 				    "SAM",
 				    "DIS",
@@ -61,13 +78,13 @@ static const char* mnemonics_a[] = {"EXT1",
 				    "ROR",
 				    "SCR",
 				    "SXL",
-				    "EXT2",
-				    "EXT3",
+				    NULL,
+				    NULL,
 				    "TRAP2",
 				    "LIF",
 				    "LDF",
-				    "TAPE",
-				    "EXT4"};
+				    NULL,
+				    "TRAP3"};
 
 void linc_inc_pc(cpu_instance* cpu) {
   cpu_set_pc(cpu, 
@@ -536,11 +553,83 @@ INSTRUCTION_A(LDF) {
 }
 
 /*
- * LINC TAPE Instructions
+ * Halt execution
  */
-INSTRUCTION_A(TAPE) {
-  /* TODO: Implement LINC TAPE */
-  lprintf(LOG_ERROR, "Tape not implemented!\n");
+INSTRUCTION_A(HLT) {
+  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+}
+
+INSTRUCTION_A(ESF) {
+}
+
+INSTRUCTION_A(QAC) {
+}
+
+INSTRUCTION_A(DJR) {
+}
+
+INSTRUCTION_A(CLR) {
+}
+
+INSTRUCTION_A(ATR) {
+}
+
+INSTRUCTION_A(RTA) {
+}
+
+INSTRUCTION_A(NOP) {
+}
+
+INSTRUCTION_A(COM) {
+}
+
+INSTRUCTION_A(SFA) {
+}
+
+INSTRUCTION_S(SNS) {
+  return 0;
+}
+
+INSTRUCTION_S(AZE) {
+  return 0;
+}
+
+INSTRUCTION_S(APO) {
+  return 0;
+}
+
+INSTRUCTION_S(LZE) {
+  return 0;
+}
+
+INSTRUCTION_S(IBZ) {
+  return 0;
+}
+
+INSTRUCTION_S(FLO) {
+  return 0;
+}
+
+INSTRUCTION_S(QLZ) {
+  return 0;
+}
+
+/*
+ * Skip unconditionally 
+ */
+INSTRUCTION_S(SKP) {
+  return 1;
+}
+
+/*
+ * Execute IO instruction
+ */
+INSTRUCTION_A(IOB) {
+  /* TODO: Check if this should be done with a function. */
+  /* TODO: Check if PC should be increased before or after iob_io. */
+  cpu->ir = linc_read(cpu, cpu->pc);
+  iob_io(cpu);
+  linc_inc_pc(cpu);
 }
 
 /* +-----+-----------------------+
@@ -568,11 +657,14 @@ static void instr_direct(cpu_instance* cpu, int op, int addr) {
  */
 static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   int ia = (i << 4) | a;
-  if(i)
-    lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_a[op], a);
-  else
-    lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_a[op], a);
+  int skip;
   
+  if(mnemonics_a[op]) {
+    if(i)
+      lprintf(LOG_DEBUG, "%s I 0%o\n", mnemonics_a[op], a);
+    else
+      lprintf(LOG_DEBUG, "%s 0%o\n", mnemonics_a[op], a);
+  }
   
   switch(op) {
     CASE_A(SET);
@@ -585,12 +677,50 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     CASE_A(SXL);
     CASE_A(LIF);
     CASE_A(LDF);
-    CASE_A(TAPE);
+  case LINC_OP_TAPE:
+    
   case LINC_OP_EXT1:
-  case LINC_OP_EXT2:
-  case LINC_OP_EXT3:
-  case LINC_OP_EXT4:
+    switch(ia) {
+      CASE_OPX(1, HLT);
+      CASE_OPX(1, ESF);
+      CASE_OPX(1, QAC);
+      CASE_OPX(1, DJR);
+      CASE_OPX(1, CLR);
+      CASE_OPX(1, ATR);
+      CASE_OPX(1, RTA);
+      CASE_OPX(1, NOP);
+      CASE_OPX(1, COM);
+      CASE_OPX(1, SFA);
+    default:
+      lprintf(LOG_ERROR, "Illegal LINC EXT1 instruction!\n");
+      break;
+    }
     break;
+  case LINC_OP_SKIP:
+    switch(ia) {
+      CASE_SKIP(SNS);
+      CASE_SKIP(AZE);
+      CASE_SKIP(APO);
+      CASE_SKIP(LZE);
+      CASE_SKIP(IBZ);
+      CASE_SKIP(FLO);
+      CASE_SKIP(QLZ);
+      CASE_SKIP(SKP);
+    default:
+      lprintf(LOG_ERROR, "Illegal or unknown SKIP instruction.\n");
+      return;
+    }
+    if((i && !skip) || (!i && skip))
+      linc_inc_pc(cpu);
+    
+  case LINC_OP_EXT2:
+    switch(ia) {
+      CASE_OPX(2, IOB);
+    default:
+      lprintf(LOG_WARNING, "Unknown EXT2 instruction.\n");
+      break;
+    }
+    
   default:
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
     break;

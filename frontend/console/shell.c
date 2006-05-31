@@ -67,6 +67,16 @@ void cmd_step(int argc, char** argp, void* data) {
   cpu_step(((cmd_data*)data)->cpu);
 }
 
+void cmd_run(int argc, char** argp, void* data) {
+  cpu_instance* cpu = ((cmd_data*)data)->cpu;
+
+  cpu_set_flag(cpu, CPU_FLAGS_RUN);
+  lprintf(LOG_VERBOSE, "Running...\n");
+  while(cpu->flags & CPU_FLAGS_RUN)
+    cpu_step(((cmd_data*)data)->cpu);
+  lprintf(LOG_VERBOSE, "Halted at %.4o.\n", cpu->pc);
+}
+
 void cmd_set(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   char* reg = argp[1];
@@ -133,6 +143,7 @@ const parser_command cmds[] = {
   {"set", 2, &cmd_set, "Sets a processor register or memory address.",
    "set REGISTER VALUE\nSets REGISTER to the value VALUE."},
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},
+  {"run", 0, &cmd_run, "Runs the loaded program from the loaded PC.", NULL},
   {"dump", 2, &cmd_dump, "Dumps the core to the console.", NULL},
   {NULL, 0, NULL, NULL}
 };
