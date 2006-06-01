@@ -66,6 +66,7 @@
 
 
 #define LINC_OPX1_HLT (00000)
+#define LINC_OPX1_PDP (00002)
 #define LINC_OPX1_ESF (00004)
 #define LINC_OPX1_QAC (00005)
 #define LINC_OPX1_DJR (00006)
@@ -86,6 +87,8 @@
 #define LINC_OPXS_SKP (00016)
 
 #define LINC_OPX2_IOB (00000)
+#define LINC_OPX2_RSW (00016)
+#define LINC_OPX2_LSW (00017)
 
 #define LINC_ADDR_FRACTION (04000)
 #define LINC_ADDR_RIGHT  (04000)

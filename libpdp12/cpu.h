@@ -40,6 +40,7 @@ typedef enum {
   CPU_FLAGS_INTPAUSE = 64,  /* An internal pause is occuring */
   CPU_FLAGS_ION      = 128, /* Program Interrupt facility enabled */
   CPU_FLAGS_IOPAUSE  = 256, /* An I/O Pause is occuring */
+  CPU_FLAGS_DJR      = 512  /* Disable saving of JMP return for next JMP */
 } cpu_flags;
 
 typedef enum {

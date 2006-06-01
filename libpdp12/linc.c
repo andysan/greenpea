@@ -428,7 +428,17 @@ INSTRUCTION_A(SET) {
  * Jump
  */
 INSTRUCTION_D(JMP) {
-  cpu_set_pc(cpu, addr);
+  /* TODO: Check what happens with DJR flag on a JMP 0. */
+  if(addr != 0) {
+    if(!(cpu->flags & CPU_FLAGS_DJR))
+      linc_write(cpu, 0, cpu->pc);
+    
+    cpu_set_pc(cpu, addr);
+  } else {
+    cpu_set_pc(cpu, linc_read(cpu, 0) & 01777);
+  }
+  
+  cpu_clear_flag(cpu, CPU_FLAGS_DJR);
 }
 
 /*
@@ -559,59 +569,122 @@ INSTRUCTION_A(HLT) {
   cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
+/*
+ * Switch to PDP8 mode
+ */
+INSTRUCTION_A(PDP) {
+  cpu_set_flag(cpu, CPU_FLAGS_8MODE);
+}
+
+/*
+ * Enable Special Function
+ */
 INSTRUCTION_A(ESF) {
+  /* TODO: Implement ESF. */
 }
 
+/*
+ * MQ transfer to AC.
+ */
 INSTRUCTION_A(QAC) {
+  /* TODO: Test QAC */
+  cpu_set_ac(cpu, cpu->mq >> 1);
 }
 
+/*
+ * Disable Jump Return
+ */
 INSTRUCTION_A(DJR) {
+  cpu_set_flag(cpu, CPU_FLAGS_DJR);
 }
 
+/*
+ * Clear AC, MQ, LINK.
+ */
 INSTRUCTION_A(CLR) {
+  cpu_set_ac(cpu, 0);
+  cpu_set_mq(cpu, 0);
+  cpu_set_l(cpu, 0);
 }
 
 INSTRUCTION_A(ATR) {
+  
 }
 
 INSTRUCTION_A(RTA) {
 }
 
+/*
+ * No Operation
+ */
 INSTRUCTION_A(NOP) {
+  /* Do nothing... */
 }
 
+/*
+ * Complement AC.
+ */
 INSTRUCTION_A(COM) {
+  cpu_set_ac(cpu, (~cpu->ac) & 07777);
 }
 
+/*
+ * Place Special Function Flip-Flops in AC
+ */
 INSTRUCTION_A(SFA) {
+  /* TODO: Implement ESF. */
 }
 
+/*
+ * Sens Switch N is set
+ */
 INSTRUCTION_S(SNS) {
-  return 0;
+  return cpu->ss & (1 << a);
 }
 
+/*
+ * Accumulator Zero
+ * AC is +0 or -0.
+ */
 INSTRUCTION_S(AZE) {
-  return 0;
+  return cpu->ac == 0 || cpu->ac == 07777;
 }
 
+/*
+ * Accumulator Positive
+ * Sign bit (msb of ac) is 0.
+ */
 INSTRUCTION_S(APO) {
-  return 0;
+  return !(cpu->ac & 04000);
 }
 
+/*
+ * Link Zero
+ */
 INSTRUCTION_S(LZE) {
-  return 0;
+  return cpu->l == 0;
 }
 
+/*
+ * LINCtape Inter-Block Zone
+ */
 INSTRUCTION_S(IBZ) {
+  /* TODO: Implement LINC-tape */
   return 0;
 }
 
+/*
+ * Overflow
+ */
 INSTRUCTION_S(FLO) {
-  return 0;
+  return cpu->flags & CPU_FLAGS_FLO;
 }
 
+/*
+ * MQ Low-Order Bit Zero
+ */
 INSTRUCTION_S(QLZ) {
-  return 0;
+  return !(cpu->mq & 04000);
 }
 
 /*
@@ -630,6 +703,20 @@ INSTRUCTION_A(IOB) {
   cpu->ir = linc_read(cpu, cpu->pc);
   iob_io(cpu);
   linc_inc_pc(cpu);
+}
+
+/*
+ * Right Switches to AC
+ */
+INSTRUCTION_A(RSW) {
+  cpu_set_ac(cpu, cpu->rs);
+}
+
+/*
+ * Left Switches to AC
+ */
+INSTRUCTION_A(LSW) {
+  cpu_set_ac(cpu, cpu->ls);
 }
 
 /* +-----+-----------------------+
@@ -682,6 +769,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   case LINC_OP_EXT1:
     switch(ia) {
       CASE_OPX(1, HLT);
+      CASE_OPX(1, PDP);
       CASE_OPX(1, ESF);
       CASE_OPX(1, QAC);
       CASE_OPX(1, DJR);
@@ -716,6 +804,8 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   case LINC_OP_EXT2:
     switch(ia) {
       CASE_OPX(2, IOB);
+      CASE_OPX(2, RSW);
+      CASE_OPX(2, LSW);
     default:
       lprintf(LOG_WARNING, "Unknown EXT2 instruction.\n");
       break;
