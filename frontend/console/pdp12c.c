@@ -4,12 +4,17 @@
 #endif
 
 #include <stdlib.h>
+#include <signal.h>
 #include <libpdp12/cpu.h>
+#include <libpdp12/iob.h>
 #include <libdecutils/rim.h>
 #include <liblog/log.h>
 #include <argp.h>
 
 #include "shell.h"
+#include "teletype.h"
+
+static cpu_instance* cpu = NULL;
 
 const char* argp_program_version =
   "PDP12 simulator version " VERSION ".\n"
@@ -61,7 +66,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 
-const struct argp a_argp = {
+static const struct argp a_argp = {
   options,
   &parse_opt,
   "[core]",
@@ -71,10 +76,27 @@ const struct argp a_argp = {
   NULL
 };
 
+static void sig_int(int signum) {
+  if(cpu && cpu->flags & CPU_FLAGS_RUN) {
+    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+    lprintf(LOG_NORMAL, "User requested HALT.\n");
+  }
+}
+
 static void start_emulator(args* a) {
-  cpu_instance* cpu = cpu_create();
+  io_device* devices[] = { teletype_create(),
+			   NULL };
+  int i;
+  
+  signal(SIGINT, &sig_int);
+  
+  cpu = cpu_create();
+  cpu->devices = devices;
   
   start_shell(cpu);
+  
+  for(i = 0; devices[i]; i++)
+    devices[i]->destroy(devices[i]->data);
   
   cpu_destroy(cpu);
 }

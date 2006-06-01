@@ -1,4 +1,5 @@
 
+#include <liblog/log.h>
 #include "cpu.h"
 #include "iob.h"
 
@@ -14,6 +15,9 @@ void iob_io(cpu_instance* cpu) {
     if(dev->io(cpu, dev->data))
       return;
   }
+  
+  lprintf(LOG_ERROR, "IO-instruction (IR=%.4o PC=%.4o) not handled.\n", cpu->ir, cpu->pc);
+  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
 void iob_reset(cpu_instance* cpu) {

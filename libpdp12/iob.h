@@ -11,6 +11,8 @@ typedef struct io_device_s{
   int (*io)(struct cpu_instance_s* cpu, void* data);
   /* Called on an IO-reset. */
   void (*reset)(struct cpu_instance_s* cpu, void* data);
+  /* Called to deallocate data and close the device. */
+  void (*destroy)(void* data);
 } io_device;
 
 void iob_io(struct cpu_instance_s* cpu);

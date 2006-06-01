@@ -19,11 +19,11 @@ typedef struct {
   int end;
 } cmd_data;
 
-void cmd_exit(int argc, char** argp, void* data) {
+static void cmd_exit(int argc, char** argp, void* data) {
   ((cmd_data*)data)->end = 1;
 }
 
-void cmd_state(int argc, char** argp, void* data) {
+static void cmd_state(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   
   printf("IR: %.4o\tMQ: %.4o\n"
@@ -38,7 +38,7 @@ void cmd_state(int argc, char** argp, void* data) {
 	 
 }
 
-void cmd_load(int argc, char** argp, void* data) {
+static void cmd_load(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   int words;
   FILE* f = fopen(argp[1], "r");
@@ -63,11 +63,11 @@ void cmd_load(int argc, char** argp, void* data) {
   fclose(f);
 }
 
-void cmd_step(int argc, char** argp, void* data) {
+static void cmd_step(int argc, char** argp, void* data) {
   cpu_step(((cmd_data*)data)->cpu);
 }
 
-void cmd_run(int argc, char** argp, void* data) {
+static void cmd_run(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
 
   cpu_set_flag(cpu, CPU_FLAGS_RUN);
@@ -77,7 +77,7 @@ void cmd_run(int argc, char** argp, void* data) {
   lprintf(LOG_VERBOSE, "Halted at %.4o.\n", cpu->pc);
 }
 
-void cmd_set(int argc, char** argp, void* data) {
+static void cmd_set(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   char* reg = argp[1];
   int value;
@@ -109,7 +109,7 @@ void cmd_set(int argc, char** argp, void* data) {
   }
 }
 
-void cmd_dump(int argc, char** argp, void* data) {
+static void cmd_dump(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   int i;
   int start, end;
@@ -135,7 +135,7 @@ void cmd_dump(int argc, char** argp, void* data) {
   printf("\n");
 }
 
-const parser_command cmds[] = {
+static const parser_command cmds[] = {
   {"exit", 0, &cmd_exit, "Exits the emulator", NULL},
   {"state", 0, &cmd_state, "Prints the CPU state.", NULL},
   {"load", 1, &cmd_load, "Loads a paper tape into memory.",

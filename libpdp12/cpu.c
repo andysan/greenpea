@@ -50,6 +50,7 @@ void cpu_step(cpu_instance* cpu) {
     lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
   } else {
     cpu->ir = linc_read(cpu, cpu->pc);
+    linc_inc_pc(cpu);
     linc_step(cpu);
   }
 }
@@ -97,6 +98,14 @@ void cpu_set_relays(cpu_instance* cpu, int r) {
 				  cpu->callbacks->data);
 }
 
+void cpu_set_ifr(cpu_instance* cpu, int n) {
+  cpu->ifr = n & 037;
+}
+
+void cpu_set_dfr(cpu_instance* cpu, int n) {
+  cpu->dfr = n & 037;
+}
+
 void cpu_write(cpu_instance* cpu, int ma, int mb) {
   /* TODO: Do something useful after outputing error. */
   lprintf(LOG_DEBUG, "cpu_write: %.4o %.4o\n", ma, mb);
@@ -136,4 +145,12 @@ int cpu_call_ext_level(cpu_instance* cpu, int level) {
   else
     /* Unknown levels are hardwired to one according to docs. */
     return 1;
+}
+
+void cpu_inc_pc(cpu_instance* cpu) {
+  if(cpu->flags & CPU_FLAGS_8MODE) {
+    lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
+  } else {
+    linc_inc_pc(cpu);
+  }
 }
