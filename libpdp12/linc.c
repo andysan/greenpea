@@ -29,15 +29,15 @@
     instr_ ## mn (cpu, i, a, ia); \
     break;
 
-#define CASE_OPX(n, mn)					       \
-  case LINC_OPX ## n ## _ ## mn:			       \
-    lprintf(LOG_VERBOSE, #mn " IA: 0%o\n", ia);                    \
-    instr_ ## mn (cpu, i, a, ia);			       \
+#define CASE_OPX(n, mn)					          \
+  case LINC_OPX ## n ## _ ## mn:			          \
+    lprintf(LOG_VERBOSE, "%.4o: " #mn " IA: 0%o\n", cpu->pc, ia); \
+    instr_ ## mn (cpu, i, a, ia);			          \
     break;
 
 #define CASE_SKIP(mn)					       \
   case LINC_OPXS_ ## mn:				       \
-    lprintf(LOG_VERBOSE, #mn "I: %o\n", i);                       \
+    lprintf(LOG_VERBOSE, "%.4o: " #mn " I: %o\n", cpu->pc, i);  \
     skip = instr_ ## mn (cpu, a);			       \
     break;
 
@@ -387,13 +387,15 @@ INSTRUCTION_A(SXL) {
   
   /* TODO: Implement prewired levels */
   switch(a) {
-  case 15:
+  case 015:
     /* Key Struck */
+    tst = 0;
+    break;
     
-  case 16:
+  case 016:
     /* Tape Instruction done */
 
-  case 17:
+  case 017:
     /* Tape Word Complete */
     
   default:
@@ -757,7 +759,7 @@ INSTRUCTION_A(LSW) {
  * +-----+-----------------------+
  */
 static void instr_direct(cpu_instance* cpu, int op, int addr) {
-  lprintf(LOG_VERBOSE, "%s 0%o\n", mnemonics_d[op], addr);
+  lprintf(LOG_VERBOSE, "%.4o: %s 0%.4o\n", cpu->pc, mnemonics_d[op], addr);
   
   switch(op) {
     CASE_D(ADD);
@@ -781,9 +783,9 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
   
   if(mnemonics_a[op]) {
     if(i)
-      lprintf(LOG_VERBOSE, "%s I 0%o\n", mnemonics_a[op], a);
+      lprintf(LOG_VERBOSE, "%.4o: %s I 0%o\n", cpu->pc, mnemonics_a[op], a);
     else
-      lprintf(LOG_VERBOSE, "%s 0%o\n", mnemonics_a[op], a);
+      lprintf(LOG_VERBOSE, "%.4o: %s 0%o\n", cpu->pc, mnemonics_a[op], a);
   }
   
   switch(op) {
@@ -868,7 +870,8 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
 static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
   int addr = beta_addr(cpu, i, b);
   
-  lprintf(LOG_VERBOSE, "%s %s 0%o (%.4o)\n",
+  lprintf(LOG_VERBOSE, "%.4o: %s %s 0%o (%.4o)\n",
+	  cpu->pc,
 	  mnemonics_b[op],
 	  i ? "I" : "",
 	  b,

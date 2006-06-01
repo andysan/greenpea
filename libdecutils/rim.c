@@ -3,16 +3,23 @@
 #endif
 
 #include <stdio.h>
+#include <errno.h>
+#include <string.h>
 #include <liblog/log.h>
 #include "rim.h"
 
-int load_rim(FILE* file, int* core, int core_size) {
+int load_rim(FILE* file, int offset, int* core, int core_size) {
   int b1, b2, b3;
   int word;
   unsigned int checksum = 0;
   int count = 0;
   
   int addr = -1;
+  
+  if(fseek(file, offset, SEEK_SET) == -1) {
+    lprintf(LOG_ERROR, "Can't set offset 0%.o: %s", offset, strerror(errno));
+    return -1;
+  }
   
   lprintf(LOG_DEBUG, "Scanning input file...\n");
   while(1) {

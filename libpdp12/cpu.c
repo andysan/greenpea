@@ -16,10 +16,10 @@ cpu_instance* cpu_create() {
   /* Registers */
   cpu->ac = 0;
   cpu->l = 0;
-  cpu->pc = 0;
+  cpu->pc = 0200;
   cpu->mq = 0;
   cpu->ir = 0;
-  cpu->ifr = 0;
+  cpu->ifr = 02;
   cpu->dfr = 0;
   cpu->relays = 0;
   
@@ -48,6 +48,7 @@ void cpu_destroy(cpu_instance* cpu) {
 void cpu_step(cpu_instance* cpu) {
   if(cpu->flags & CPU_FLAGS_8MODE) {
     lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
+    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
   } else {
     cpu->ir = linc_read(cpu, cpu->pc);
     linc_inc_pc(cpu);

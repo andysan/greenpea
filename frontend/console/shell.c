@@ -41,15 +41,25 @@ static void cmd_state(int argc, char** argp, void* data) {
 static void cmd_load(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   int words;
-  FILE* f = fopen(argp[1], "r");
+  FILE* f;
+  int offset = 0;
   
+  if(argc <= 1 || argc > 3) {
+    lprintf(LOG_ERROR, "Invalid number of parameters for 'load'.\n");
+    return;
+  }
+  
+  f = fopen(argp[1], "r");
   if(f == NULL) {
     lprintf(LOG_ERROR, "Failed to input open file: %s\n",
 	    strerror(errno));
     return;
   }
+
+  if(argc >= 3)
+    offset = atoi(argp[2]);
   
-  words = load_rim(f, cpu->core, CPU_CORE_SIZE);
+  words = load_rim(f, offset, cpu->core, CPU_CORE_SIZE);
   if(words == -1) {
     lprintf(LOG_ERROR, "Failed to load RIM-file...\n"
 	    "Core might be dirty.\n");
@@ -138,8 +148,8 @@ static void cmd_dump(int argc, char** argp, void* data) {
 static const parser_command cmds[] = {
   {"exit", 0, &cmd_exit, "Exits the emulator", NULL},
   {"state", 0, &cmd_state, "Prints the CPU state.", NULL},
-  {"load", 1, &cmd_load, "Loads a paper tape into memory.",
-   "load FILENAME\nLoads FILENAME into memory."},
+  {"load", -1, &cmd_load, "Loads a paper tape into memory.",
+   "load FILENAME [LOAD OFFSET]\nLoads FILENAME into memory."},
   {"set", 2, &cmd_set, "Sets a processor register or memory address.",
    "set REGISTER VALUE\nSets REGISTER to the value VALUE."},
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},

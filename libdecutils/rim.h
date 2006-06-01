@@ -14,7 +14,7 @@
  * RET:
  * Returns number of words read, -1 on failure.
  */
-int load_rim(FILE* file, int* core, int core_size);
+int load_rim(FILE* file, int offset, int* core, int core_size);
 
 
 #endif

@@ -18,11 +18,13 @@ const char* argp_program_bug_address = "<andreas@sandberg.pp.se>";
 
 typedef struct {
   char* tape;
+  int offset;
 } args;
 
 const struct argp_option options[] = {
   { "debug", 'd', "level", 0, "Modifies the debug output threshold"},
   { "verbose", 'v', NULL, 0, "Produce verbose output"},
+  { "offset", 'o', "offset", 0, "Use offset for input"},
   { NULL, 0, NULL, 0, NULL}
 };
 
@@ -34,10 +36,14 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
   case 'd':
     log_level = atoi(arg);
     break;
-    
+
   case 'v':
     if(log_level > LOG_VERBOSE)
       log_level = LOG_VERBOSE;
+    break;
+    
+  case 'o':
+    a->offset = atoi(arg);
     break;
     
   case ARGP_KEY_ARG:
@@ -70,7 +76,7 @@ const struct argp a_argp = {
   NULL
 };
 
-void dump(char* tape) {
+void dump(char* tape, int offset) {
   FILE* f = fopen(tape, "r");
   int* core = malloc(sizeof(int) * 4096);
   int i;
@@ -82,7 +88,7 @@ void dump(char* tape) {
     exit(1);
   }
   
-  if(load_rim(f, core, 4096) == -1) {
+  if(load_rim(f, offset, core, 4096) == -1) {
     lprintf(LOG_ERROR, "Failed to load RIM-file...\n");
     fclose(f);
     free(core);
@@ -101,12 +107,13 @@ void dump(char* tape) {
 int main(int argc, char** argp) {
   args a;
   
+  a.offset = 0;
   a.tape = NULL;
   
   argp_parse(&a_argp, argc, argp, 0, NULL, &a);
   
   printf("Log level: %i\n", log_level);
-  dump(a.tape);
+  dump(a.tape, a.offset);
   
   return 0;
 }
