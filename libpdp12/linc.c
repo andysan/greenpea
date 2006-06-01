@@ -785,7 +785,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     }
     break;
   case LINC_OP_SKIP:
-    switch(ia) {
+    switch(a) {
       CASE_SKIP(SNS);
       CASE_SKIP(AZE);
       CASE_SKIP(APO);
