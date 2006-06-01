@@ -800,6 +800,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     }
     if((i && !skip) || (!i && skip))
       linc_inc_pc(cpu);
+    break;
     
   case LINC_OP_EXT2:
     switch(ia) {
@@ -810,6 +811,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
       lprintf(LOG_WARNING, "Unknown EXT2 instruction.\n");
       break;
     }
+    break;
     
   default:
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
