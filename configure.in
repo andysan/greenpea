@@ -1,5 +1,10 @@
+dnl
+dnl $Id$
+dnl
 AC_INIT([pdp12emu],[0.1])
 AM_INIT_AUTOMAKE
+
+AC_REVISION($Revision$)
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -9,6 +14,19 @@ AC_CHECK_HEADERS([argp.h])
 
 AC_ARG_ENABLE(readline,
 		AS_HELP_STRING([--disable-readline], [disables the use of GNU Readline]))
+
+AC_ARG_ENABLE(sdl,
+		AS_HELP_STRING([--disable-sdl], [disables the use of SDL]))
+
+if test x$enable_sdl != xno; then
+   dnl Check for SDL
+   SDL_VERSION=1.2.0
+   AM_PATH_SDL($SDL_VERSION,
+               [ AC_MSG_NOTICE([SDL found, enabling screen emulation.]) ]
+	       [ AC_DEFINE([HAVE_SDL], [], [SDL is installed and enabled.]) ],
+	       [ AC_MSG_WARN([*** SDL version $SDL_VERSION not found!]) ]
+	      )
+fi
 
 if test x$enable_readline != xno; then
    VL_LIB_READLINE
