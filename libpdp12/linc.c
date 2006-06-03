@@ -586,7 +586,7 @@ INSTRUCTION_A(DIS) {
       linc_writE(cpu, a, t);
     }
     
-    x = (t & 0400) ? (~t & 0377) : (t & 0377);
+    x = (t & 0400) ? -(~t & 0377) : (t & 0377);
     y = cpu->ac & 0777;
     c = (t & 0 04000) ? 1 : 0;
     vr12->dis(-x + 0377, y, c);
