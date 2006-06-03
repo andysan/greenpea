@@ -102,25 +102,38 @@ static void sig_int(int signum) {
   }
 }
 
-static void asr33_print(cpu_instance* cpu, char c) {
+static void asr33_print(char c, void* data) {
   lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c, c);
   cpu->asr33->printer_flag = 0;
+}
+
+void vr12_dis(int x, int y, int channel, void* data) {
+  lprintf(LOG_NORMAL, "vr12_dis: (%i, %i) C: %i\n", x, y, channel);
 }
 
 static void start_emulator(args* a) {
   io_device* devices[] = { NULL };
   asr33 asr33;
+  vr12 vr12;
   /* int i; */
   
   asr33.print = &asr33_print;
   asr33.read = NULL;
   asr33.keyboard_flag = 0;
   asr33.printer_flag = 0;
+  asr33.data = NULL;
+  
+  vr12.dis = &vr12_dis;
+  vr12.dsc_half = NULL;
+  vr12.dsc_full = NULL;
+  vr12.data = NULL;
   
   signal(SIGINT, &sig_int);
   
   cpu = cpu_create();
   cpu->devices = devices;
+  cpu->asr33 = &asr33;
+  cpu->vr12 = &vr12;
   
   start_shell(cpu);
   

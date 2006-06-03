@@ -61,7 +61,7 @@ void asr33_instr(cpu_instance* cpu) {
   /* Read Keyboard Buffer Static */
   if(HAS_INSTR(KRS)) {
     if(asr33->read)
-      cpu_set_ac(cpu, (cpu->ac & 07400) | (asr33->read(cpu) & 0377));
+      cpu_set_ac(cpu, (cpu->ac & 07400) | (asr33->read(asr33->data) & 0377));
   }
   
   /* Skip on Teleprinter Flag */
@@ -77,7 +77,7 @@ void asr33_instr(cpu_instance* cpu) {
   /* Load Teleprinter and Print */
   if(HAS_INSTR(TPC)) {
     if(asr33->print)
-      asr33->print(cpu, (char)cpu->ac & 0377);
+      asr33->print((char)cpu->ac & 0377, asr33->data);
     else
       /* Pretend that the character was actually printed. */
       asr33->printer_flag = 1;

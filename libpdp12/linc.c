@@ -583,13 +583,13 @@ INSTRUCTION_A(DIS) {
     t = linc_read(cpu, a);
     if(i) {
       t = ((t + 1) & 01777) | (t & 06000);
-      linc_writE(cpu, a, t);
+      linc_write(cpu, a, t);
     }
     
-    x = (t & 0400) ? -(~t & 0377) : (t & 0377);
-    y = cpu->ac & 0777;
-    c = (t & 0 04000) ? 1 : 0;
-    vr12->dis(-x + 0377, y, c);
+    x = t & 0777;
+    y = (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377);
+    c = (t & 04000) ? 1 : 0;
+    vr12->dis(x, -y + 0377, c, vr12->data);
   }
 }
 
