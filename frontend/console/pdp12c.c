@@ -55,11 +55,13 @@ const char* argp_program_bug_address = "<andreas@sandberg.pp.se>";
 
 typedef struct {
   char* core;
+  int no_vr12;
 } args;
 
 const struct argp_option options[] = {
   { "debug", 'd', "level", 0, "Modifies the debug output threshold"},
   { "verbose", 'v', NULL, 0, "Produce verbose output"},
+  { "no-vr12", 'n', NULL, 0, "Disable the emulation of the VR12 display."},
   { NULL, 0, NULL, 0, NULL}
 };
 
@@ -75,6 +77,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
   case 'v':
     if(log_level > LOG_VERBOSE)
       log_level = LOG_VERBOSE;
+    break;
+    
+  case 'n':
+    a->no_vr12 = 1;
     break;
     
   case ARGP_KEY_ARG:
@@ -254,11 +260,13 @@ int main(int argc, char** argp) {
   args a;
   
   a.core = NULL;
+  a.no_vr12 = 0;
   
   argp_parse(&a_argp, argc, argp, 0, NULL, &a);
 
   #ifdef HAVE_SDL
-  init_sdl();
+  if(!a.no_vr12)
+    init_sdl();
   #endif
   
   start_emulator(&a);
