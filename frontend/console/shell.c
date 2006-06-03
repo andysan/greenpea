@@ -134,6 +134,8 @@ static void cmd_set(int argc, char** argp, void* data) {
       cpu->ifr = value;
     else if(!strcmp(reg, "df"))
       cpu->dfr = value;
+    else if(!strcmp(reg, "sense"))
+      cpu->ss = value;
     else
       lprintf(LOG_ERROR, "Invalid register specified!\n");
   }

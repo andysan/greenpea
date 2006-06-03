@@ -24,7 +24,6 @@
 #include <liblog/log.h>
 #include "cpu.h"
 #include "linc.h"
-#include "iob.h"
 
 #define INSTRUCTION_D(mn) \
   static void instr_ ## mn(cpu_instance* cpu, int addr)
@@ -260,10 +259,10 @@ INSTRUCTION_B(MUL) {
   int sign = (op1 & 04000) ^ (op2 & 04000);
   int t;
   
-  if(op1 & LINC_OP_NEGATIVE)
+  if(op1 & LINC_OPERAND_NEGATIVE)
     op1 = ~op1 & 07777;
   
-  if(op2 & LINC_OP_NEGATIVE)
+  if(op2 & LINC_OPERAND_NEGATIVE)
     op2 = ~op2 & 07777;
   
   t = (op1 & 03777) * (op2 & 03777);
@@ -409,7 +408,10 @@ INSTRUCTION_A(SXL) {
   switch(a) {
   case 015:
     /* Key Struck */
-    tst = 0;
+    if(cpu->asr33)
+      tst = cpu->asr33->keyboard_flag;
+    else
+      tst = 0;
     break;
     
   case 016:
@@ -573,8 +575,22 @@ INSTRUCTION_A(SAM) {
  * Display point on oscilloscope.
  */
 INSTRUCTION_A(DIS) {
-  /* TODO: Implement scope */
-  lprintf(LOG_WARNING, "DIS not implemented.\n");
+  int t;
+  int x, y, c;
+  vr12* vr12 = cpu->vr12;
+  
+  if(vr12 && vr12->dis) {
+    t = linc_read(cpu, a);
+    if(i) {
+      t = ((t + 1) & 01777) | (t & 06000);
+      linc_writE(cpu, a, t);
+    }
+    
+    x = (t & 0400) ? (~t & 0377) : (t & 0377);
+    y = cpu->ac & 0777;
+    c = (t & 0 04000) ? 1 : 0;
+    vr12->dis(-x + 0377, y, c);
+  }
 }
 
 /*
@@ -845,19 +861,24 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     break;
     
   case LINC_OP_SKIP:
-    switch(a) {
-      CASE_SKIP(SNS);
-      CASE_SKIP(AZE);
-      CASE_SKIP(APO);
-      CASE_SKIP(LZE);
-      CASE_SKIP(IBZ);
-      CASE_SKIP(FLO);
-      CASE_SKIP(QLZ);
-      CASE_SKIP(SKP);
-    default:
-      lprintf(LOG_ERROR, "Illegal or unknown SKIP instruction.\n");
-      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
-      return;
+    /* TODO: Check if this is OK */
+    if(!(a & 010)) {
+      lprintf(LOG_VERBOSE, "%.4o: SNS I: %o\n", cpu->pc, i);
+      skip = instr_SNS(cpu, a);
+    } else {
+      switch(a) {
+	CASE_SKIP(AZE);
+	CASE_SKIP(APO);
+	CASE_SKIP(LZE);
+	CASE_SKIP(IBZ);
+	CASE_SKIP(FLO);
+	CASE_SKIP(QLZ);
+	CASE_SKIP(SKP);
+      default:
+	lprintf(LOG_ERROR, "Illegal or unknown SKIP instruction.\n");
+	cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+	return;
+      }
     }
     if((i && !skip) || (!i && skip))
       linc_inc_pc(cpu);

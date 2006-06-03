@@ -28,9 +28,9 @@ typedef struct io_device_s{
 
   /* Called on IO, returns 0 if the IO-request
      was not handled. */
-  int (*io)(struct cpu_instance_s* cpu, void* data);
+  int (*io)(cpu_instance* cpu, void* data);
   /* Called on an IO-reset. */
-  void (*reset)(struct cpu_instance_s* cpu, void* data);
+  void (*reset)(cpu_instance* cpu, void* data);
   /* Called to deallocate data and close the device. */
   void (*destroy)(void* data);
 } io_device;

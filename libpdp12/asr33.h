@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: asr33.h 24 2006-06-02 16:24:53Z sandberg $
  * Copyright (C) 2006 Andreas Sandberg <andreas@sandberg.pp.se>
  *
  * This file is a part of PDP12-emu, a free PDP12 emulator.
@@ -18,27 +18,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-#ifndef _TELETYPE_H
-#define _TELETYPE_H
 
-#define TELETYPE_KSF (06031)
-#define TELETYPE_KCC (06032)
-#define TELETYPE_KRS (06034)
+#ifndef _ASR33_H
+#define _ASR33_H
 
+/*
+ * Interface for the ASR33 device.
+ */
+typedef struct asr33_s {
+  /* Called when the instruction to print a character on the ASR33 is called.
+   * Is responsible for setting the printer_flag when printing is done.
+   */
+  void (*print)(cpu_instance* cpu, char c);
+  char (*read)(cpu_instance* cpu);
+  
+  int keyboard_flag : 1;
+  int printer_flag : 1;
+} asr33;
 
-#define TELETYPE_TSF (06041)
-#define TELETYPE_TCF (06042)
-#define TELETYPE_TPC (06044)
-
-typedef enum {
-  TELETYPE_FLAGS_KEYBOARD = 1,
-  TELETYPE_FLAGS_PRINTER = 2
-} teletype_flags;
-
-typedef struct {
-  int flags;
-} teletype_state;
-
-io_device* teletype_create();
+void asr33_instr(cpu_instance* cpu);
+void asr33_reset(cpu_instance* cpu);
 
 #endif

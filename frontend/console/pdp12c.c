@@ -32,7 +32,6 @@
 #include <argp.h>
 
 #include "shell.h"
-#include "teletype.h"
 
 static cpu_instance* cpu = NULL;
 
@@ -103,10 +102,20 @@ static void sig_int(int signum) {
   }
 }
 
+static void asr33_print(cpu_instance* cpu, char c) {
+  lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c, c);
+  cpu->asr33->printer_flag = 0;
+}
+
 static void start_emulator(args* a) {
-  io_device* devices[] = { teletype_create(),
-			   NULL };
-  int i;
+  io_device* devices[] = { NULL };
+  asr33 asr33;
+  /* int i; */
+  
+  asr33.print = &asr33_print;
+  asr33.read = NULL;
+  asr33.keyboard_flag = 0;
+  asr33.printer_flag = 0;
   
   signal(SIGINT, &sig_int);
   
@@ -115,8 +124,10 @@ static void start_emulator(args* a) {
   
   start_shell(cpu);
   
+  /*
   for(i = 0; devices[i]; i++)
     devices[i]->destroy(devices[i]->data);
+  */  
   
   cpu_destroy(cpu);
 }

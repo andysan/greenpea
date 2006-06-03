@@ -8,4 +8,8 @@ libpdp12_a_SOURCES = 		\
 	linc.c			\
 	linc.h			\
 	pdp8.c			\
-	pdp8.h
+	pdp8.h			\
+	asr33.c			\
+	asr33.h			\
+	vr12.h
+

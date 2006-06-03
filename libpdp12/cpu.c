@@ -55,6 +55,8 @@ cpu_instance* cpu_create() {
   
   cpu->devices = NULL;
   cpu->callbacks = NULL;
+  cpu->vr12 = NULL;
+  cpu->asr33 = NULL;
   
   memset(cpu->core, 0, CPU_CORE_SIZE);
   

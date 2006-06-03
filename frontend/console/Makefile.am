@@ -4,8 +4,7 @@ noinst_PROGRAMS = paperdump
 pdp12c_SOURCES = pdp12c.c 				\
 	shell.c shell.h					\
 	readln.h readln.c				\
-	parser.c parser.h				\
-	teletype.c teletype.h
+	parser.c parser.h
 
 pdp12c_LDADD =  					\
 	$(top_builddir)/libpdp12/libpdp12.a 		\

@@ -112,7 +112,7 @@
 
 #define LINC_ADDR_FRACTION (04000)
 #define LINC_ADDR_RIGHT  (04000)
-#define LINC_OP_NEGATIVE (04000)
+#define LINC_OPERAND_NEGATIVE (04000)
 
 void linc_step(cpu_instance* cpu);
 void linc_inc_pc(cpu_instance* cpu);

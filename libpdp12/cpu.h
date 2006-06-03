@@ -22,6 +22,12 @@
 #ifndef _CPU_H
 #define _CPU_H
 
+typedef struct cpu_instance_s cpu_instance;
+
+#include "iob.h"
+#include "vr12.h"
+#include "asr33.h"
+
 /* Amount of memory allways availible to the CPU (in words) */
 #define CPU_CORE_SIZE 32768
 
@@ -77,17 +83,14 @@ typedef enum {
   CPU_STATE_TB  = 256
 } cpu_states;
 
-typedef struct cpu_callbacks_s cpu_callbacks;
-typedef struct cpu_instance_s cpu_instance;
-
-struct cpu_callbacks_s {
-  int (*get_level)(struct cpu_instance_s* cpu, void* data, int level);
-  void (*update_relays)(struct cpu_instance_s* cpu, void* data);
+typedef struct cpu_callbacks_s {
+  int (*get_level)(cpu_instance* cpu, void* data, int level);
+  void (*update_relays)(cpu_instance* cpu, void* data);
   /* Returns a value between -0777 and 0777 */
-  int (*sample_ad)(struct cpu_instance_s* cpu, void* data, int n);
+  int (*sample_ad)(cpu_instance* cpu, void* data, int n);
   
   void* data;
-};
+} cpu_callbacks;
 
 struct cpu_instance_s {
   CPU_REG12 ac;     /* Accumulator */
@@ -117,6 +120,8 @@ struct cpu_instance_s {
   CPU_REG6   ss;    /* Sense Switches */
   
   cpu_callbacks* callbacks;
+  vr12* vr12;
+  asr33* asr33;
   
   /* NULL terminated list of devices attached to the IO bus.
      NULL if no devices attached. */

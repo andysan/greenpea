@@ -22,10 +22,13 @@
 #include <liblog/log.h>
 #include "cpu.h"
 #include "iob.h"
+#include "asr33.h"
 
 void iob_io(cpu_instance* cpu) {
   io_device* dev;
   int i;
+  
+  asr33_instr(cpu);
   
   if(!cpu->devices)
     return;
@@ -43,6 +46,8 @@ void iob_io(cpu_instance* cpu) {
 void iob_reset(cpu_instance* cpu) {
   io_device* dev;
   int i;
+  
+  asr33_reset(cpu);
   
   if(!cpu->devices)
     return;
