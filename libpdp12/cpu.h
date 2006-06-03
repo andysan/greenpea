@@ -68,7 +68,7 @@ typedef enum {
   CPU_FLAGS_IOPAUSE  = 256,  /* An I/O Pause is occuring */
   CPU_FLAGS_DJR      = 512,  /* Disable saving of JMP return for next JMP */
   CPU_FLAGS_LIF      = 1024, /* IFB -> IFR on next JMP Y (Y != 0) */
-  CPU_FLAGS_LIF_II   = 2048  /* Inhibit Interrupts until next JMP in new IF */
+  CPU_FLAGS_LINC_II  = 2048  /* Inhibit Interrupts until next JMP in new IF */
 } cpu_flags;
 
 typedef enum {
@@ -82,6 +82,15 @@ typedef enum {
   CPU_STATE_B   = 128,
   CPU_STATE_TB  = 256
 } cpu_states;
+
+typedef enum {
+  CPU_ESF_IO_PRESET = 1,
+  CPU_ESF_DISABLE_ASR33_INT = 2,
+  CPU_ESF_FAST_SAMPLE = 4,
+  CPU_ESF_CHAR_SIZE = 8,
+  CPU_ESF_TAPE_TRAP = 16,
+  CPU_ESF_INSTRUCTION_TRAP = 32,
+} cpu_esf;
 
 typedef struct cpu_callbacks_s {
   int (*get_level)(cpu_instance* cpu, void* data, int level);
@@ -112,7 +121,9 @@ struct cpu_instance_s {
   CPU_REG6  relays; /* Register holding relay status */
   
   cpu_flags flags;
-  cpu_flags state ;
+  cpu_states state ;
+  
+  cpu_esf esf;      /* LINC special functions register */
   
   CPU_REG12 ls;     /* Left Switches */
   CPU_REG12 rs;     /* Right Switches */
@@ -133,6 +144,8 @@ struct cpu_instance_s {
 cpu_instance* cpu_create();
 void cpu_destroy(cpu_instance* cpu);
 
+void cpu_io_preset(cpu_instance* cpu);
+
 void cpu_step(cpu_instance* cpu);
 
 void cpu_set_ac(cpu_instance* cpu, int ac);
@@ -144,6 +157,7 @@ void cpu_set_flag(cpu_instance* cpu, cpu_flags s);
 void cpu_set_relays(cpu_instance* cpu, int r);
 void cpu_set_ifr(cpu_instance* cpu, int n);
 void cpu_set_dfr(cpu_instance* cpu, int n);
+void cpu_set_esf(cpu_instance* cpu, int n);
 
 void cpu_clear_state(cpu_instance* cpu, cpu_states s);
 void cpu_clear_flag(cpu_instance* cpu, cpu_flags s);

@@ -34,6 +34,11 @@
 #include "readln.h"
 #include "parser.h"
 
+void vr12_fade();
+#ifdef HAVE_SDL
+void sdl_update();
+#endif
+
 typedef struct {
   cpu_instance* cpu;
   int end;
@@ -99,11 +104,20 @@ static void cmd_step(int argc, char** argp, void* data) {
 
 static void cmd_run(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
+  unsigned int i = 0;
 
   cpu_set_flag(cpu, CPU_FLAGS_RUN);
   lprintf(LOG_VERBOSE, "Running...\n");
-  while(cpu->flags & CPU_FLAGS_RUN)
+  while(cpu->flags & CPU_FLAGS_RUN) {
+    i++;
     cpu_step(((cmd_data*)data)->cpu);
+    if(i % 1000 == 0) {
+      vr12_fade();
+#ifdef HAVE_SDL
+      sdl_update();
+#endif
+    }
+  }
   lprintf(LOG_VERBOSE, "Halted at %.4o.\n", cpu->pc);
 }
 
@@ -186,7 +200,7 @@ void start_shell(cpu_instance* cpu) {
   
   cd.cpu = cpu;
   cd.end = 0;
-  
+
   do {
     /* If readline functionallity is emulated by
        in readln.c and if the "real thing" isn't

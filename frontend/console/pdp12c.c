@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <string.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <libpdp12/cpu.h>
@@ -31,7 +32,18 @@
 #include <liblog/log.h>
 #include <argp.h>
 
+#ifdef HAVE_SDL
+#include <SDL.h>
+
+static int sdl_available = 0;
+static SDL_Surface* screen = NULL;
+static Uint32 channel_colors[2][0xFF];
+
+#endif
+
 #include "shell.h"
+
+unsigned char vr12_surface[512][512][2];
 
 static cpu_instance* cpu = NULL;
 
@@ -107,9 +119,79 @@ static void asr33_print(char c, void* data) {
   cpu->asr33->printer_flag = 0;
 }
 
-void vr12_dis(int x, int y, int channel, void* data) {
-  lprintf(LOG_NORMAL, "vr12_dis: (%i, %i) C: %i\n", x, y, channel);
+static void vr12_plot(int x, int y, int channel, void* data) {
+  switch(channel) {
+  case 0:
+  case 1:
+    vr12_surface[x][y][channel] = 0xFF;
+    break;
+    
+  default:
+    vr12_surface[x][y][0] = 0xFF;
+    vr12_surface[x][y][1] = 0xFF;
+    break;
+  }
 }
+
+void vr12_fade() {
+  int x, y;
+  
+  for(x = 0; x < 512; x++) {
+    for(y = 0; y < 512; y++) {
+      if(vr12_surface[x][y][0] > 10)
+	vr12_surface[x][y][0] -= 10;
+
+      if(vr12_surface[x][y][1] > 10)
+	vr12_surface[x][y][1] -= 10;
+    }
+  }
+}
+
+#ifdef HAVE_SDL
+void sdl_update() {
+  int bpp;
+  Uint8* p;
+  Uint32 c;
+  int x, y;
+  
+  if(SDL_LockSurface(screen) == -1)
+    return;
+  
+  bpp = screen->format->BytesPerPixel;
+  for(x = 0; x < 512; x++) {
+    for(y = 0; y < 512; y++) {
+      c = channel_colors[0][vr12_surface[x][y][0]];
+      /* c |= channel_colors[1][vr12_surface[x][y][1]]; */
+      
+      p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+      
+      switch(bpp) {
+      case 1:
+	*p = (Uint8)c;
+	break;
+	
+      case 2:
+	*(Uint16 *)p = (Uint16)c;
+	break;
+	
+      case 3:
+	p[0] = (c >> 16) & 0xff;
+	p[1] = (c >> 8) & 0xff;
+	p[2] = c & 0xff;
+	break;
+	
+      case 4:
+	*(Uint32 *)p = c;
+	break;
+      }
+    }
+  }
+  
+  SDL_UnlockSurface(screen);
+  SDL_UpdateRect(screen, 0, 0, 0, 0);
+}
+
+#endif
 
 static void start_emulator(args* a) {
   io_device* devices[] = { NULL };
@@ -123,7 +205,9 @@ static void start_emulator(args* a) {
   asr33.printer_flag = 0;
   asr33.data = NULL;
   
-  vr12.dis = &vr12_dis;
+  memset(vr12_surface, '\0', 512*512*2);
+  
+  vr12.dis = &vr12_plot;
   vr12.dsc_half = NULL;
   vr12.dsc_full = NULL;
   vr12.data = NULL;
@@ -145,13 +229,44 @@ static void start_emulator(args* a) {
   cpu_destroy(cpu);
 }
 
+#ifdef HAVE_SDL
+static void init_sdl() {
+  int i;
+  
+  sdl_available = (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == 0);
+  if(!sdl_available) {
+    lprintf(LOG_WARNING, "Failed to initialize SDL (%s), VR12 emulation disabled.\n", SDL_GetError());
+  } else {
+    screen = SDL_SetVideoMode(512, 512, 24, SDL_SWSURFACE | SDL_ANYFORMAT);
+    if(!screen) {
+      lprintf(LOG_WARNING, "Failed to create SDL surface (%s), VR12 emulation disabled.\n", SDL_GetError());
+    } else {
+      for(i = 0; i <= 0xFF; i++) {
+	channel_colors[0][i] = SDL_MapRGB(screen->format, i, 0, 0);
+	channel_colors[1][i] = SDL_MapRGB(screen->format, 0, i, 0);
+      }
+    }
+  }
+}
+#endif
+
 int main(int argc, char** argp) {
   args a;
   
   a.core = NULL;
   
   argp_parse(&a_argp, argc, argp, 0, NULL, &a);
+
+  #ifdef HAVE_SDL
+  init_sdl();
+  #endif
+  
   start_emulator(&a);
+  
+  #ifdef HAVE_SDL
+  if(sdl_available)
+    SDL_Quit();
+  #endif
   
   return 0;
 }

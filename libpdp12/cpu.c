@@ -67,6 +67,11 @@ void cpu_destroy(cpu_instance* cpu) {
   free(cpu);
 }
 
+void cpu_io_preset(cpu_instance* cpu) {
+  /* TODO: Check what more needs to go into this operation */
+  cpu->esf = CPU_ESF_CHAR_SIZE;
+}
+
 void cpu_step(cpu_instance* cpu) {
   if(cpu->flags & CPU_FLAGS_8MODE) {
     lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
@@ -127,6 +132,10 @@ void cpu_set_ifr(cpu_instance* cpu, int n) {
 
 void cpu_set_dfr(cpu_instance* cpu, int n) {
   cpu->dfr = n & 037;
+}
+
+void cpu_set_esf(cpu_instance* cpu, int n) {
+  cpu->esf = n & 076;
 }
 
 void cpu_write(cpu_instance* cpu, int ma, int mb) {

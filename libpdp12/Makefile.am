@@ -11,5 +11,6 @@ libpdp12_a_SOURCES = 		\
 	pdp8.h			\
 	asr33.c			\
 	asr33.h			\
+	vr12.c			\
 	vr12.h
 

@@ -41,29 +41,31 @@
 #define CASE_D(mn) \
   case LINC_OP_ ## mn: \
     instr_ ## mn (cpu, addr); \
-    break;
+    return;
 
 #define CASE_A(mn) \
   case LINC_OP_ ## mn: \
     instr_ ## mn (cpu, i, a, ia); \
-    break;
+    return;
 
 #define CASE_OPX(n, mn)					          \
   case LINC_OPX ## n ## _ ## mn:			          \
     lprintf(LOG_VERBOSE, "%.4o: " #mn " IA: 0%o\n", cpu->pc, ia); \
     instr_ ## mn (cpu, i, a, ia);			          \
-    break;
+    return;
 
 #define CASE_SKIP(mn)					       \
   case LINC_OPXS_ ## mn:				       \
-    lprintf(LOG_VERBOSE, "%.4o: " #mn " I: %o\n", cpu->pc, i);  \
+    lprintf(LOG_VERBOSE, "%.4o: " #mn " I: %o\n", cpu->pc, i); \
     skip = instr_ ## mn (cpu, a);			       \
-    break;
+    if((i && !skip) || (!i && skip))                           \
+      linc_inc_pc(cpu);                                        \
+    return;
 
 #define CASE_B(mn) \
   case LINC_OP_ ## mn: \
     instr_ ## mn (cpu, addr); \
-    break;
+    return;
 
 
 static const char* mnemonics_d[] = {"INVALID",
@@ -164,12 +166,23 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
    if op1 && op2 have the same sign and
    the results have a different sign, then
    overflow has occured. */
-void check_overflow(cpu_instance* cpu, int op1, int op2, int res) {
+static void check_overflow(cpu_instance* cpu, int op1, int op2, int res) {
   if((op1 & 04000) == (op2 & 04000) &&
      (res & 04000) != (op1 & 04000))
     cpu_set_flag(cpu, CPU_FLAGS_FLO);
   else
     cpu_clear_flag(cpu, CPU_FLAGS_FLO);
+}
+
+static void linc_set_sfr(cpu_instance* cpu) {
+  cpu->sfr = (cpu->ifr << 5) | cpu->dfr;
+}
+
+static void linc_trap(cpu_instance* cpu) {
+  linc_set_sfr(cpu);
+  cpu_set_ifr(cpu, 0);
+  linc_write(cpu, LINC_TRAP_SAVE_PC, cpu->pc);
+  cpu_set_pc(cpu, LINC_TRAP_PC);
 }
 
 
@@ -404,7 +417,6 @@ INSTRUCTION_A(SCR) {
 INSTRUCTION_A(SXL) {
   int tst = 1;
   
-  /* TODO: Implement prewired levels */
   switch(a) {
   case 015:
     /* Key Struck */
@@ -415,9 +427,11 @@ INSTRUCTION_A(SXL) {
     break;
     
   case 016:
+    /* TODO: Implement LINCtape */
     /* Tape Instruction done */
 
   case 017:
+    /* TODO: Implement LINCtape */
     /* Tape Word Complete */
     
   default:
@@ -457,8 +471,8 @@ INSTRUCTION_D(JMP) {
   /* Disable LIF interrupt inhibit if we aren't waiting
      for a new IF.
   */
-  if(!(cpu->flags & CPU_FLAGS_LIF))
-    cpu_clear_flag(cpu, CPU_FLAGS_LIF_II);
+  if(!(cpu->flags & CPU_FLAGS_LINC_II))
+    cpu_clear_flag(cpu, CPU_FLAGS_LINC_II);
   
   if(addr != 0) {
     /* Load new instruction field if requested by LIF. */
@@ -521,8 +535,6 @@ INSTRUCTION_B(SHD) {
   
   if((op & 077) == (cpu->ac & 077))
     linc_inc_pc(cpu);
-  
-  lprintf(LOG_ERROR, "SHD instruction not implented...\n");
 }
 
 /*
@@ -576,40 +588,56 @@ INSTRUCTION_A(SAM) {
  */
 INSTRUCTION_A(DIS) {
   int t;
-  int x, y, c;
-  vr12* vr12 = cpu->vr12;
   
-  if(vr12 && vr12->dis) {
-    t = linc_read(cpu, a);
-    if(i) {
-      t = ((t + 1) & 01777) | (t & 06000);
-      linc_write(cpu, a, t);
-    }
-    
-    x = t & 0777;
-    y = (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377);
-    c = (t & 04000) ? 1 : 0;
-    vr12->dis(x, -y + 0377, c, vr12->data);
+  t = linc_read(cpu, a);
+  if(i) {
+    t = ((t + 1) & 01777) | (t & 06000);
+    linc_write(cpu, a, t);
   }
+  
+  vr12_dis(cpu->vr12,
+	   t & 0777, 
+	   (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377), 
+	   (t & 04000) ? 1 : 0);
 }
 
 /*
  * Display character on oscilloscope.
  */
 INSTRUCTION_B(DSC) {
-  /* TODO: Implement the scope... */
-  lprintf(LOG_WARNING, "DSC not implemented.\n");
+  int x;
+  
+  x = linc_read(cpu, LINC_DSC_ADDR_X);
+  
+  if(cpu->esf & CPU_ESF_CHAR_SIZE) {
+    /* Full char size */
+    cpu_set_ac(cpu, (cpu->ac & 07740) | 030);
+    linc_write(cpu, LINC_DSC_ADDR_X,
+	       ((x + 010) & 01777) | (x & 06000));
+  } else {
+    /* Half char size */
+    cpu_set_ac(cpu, (cpu->ac & 07760) | 014);
+    linc_write(cpu, LINC_DSC_ADDR_X,
+	       ((x + 04) & 01777) | (x & 06000));
+  }
+  
+  /* TODO: Check if coordinates are correctly handled */
+  vr12_dsc(cpu->vr12,
+	   cpu->esf & CPU_ESF_CHAR_SIZE,
+	   x & 0777, 
+	   (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377),
+	   linc_read(cpu, addr));
 }
 
 /*
  * Load instruction field buffer with N.
  */
 INSTRUCTION_A(LIF) {
-  /* TODO: Implement LIF */ 
-  cpu->sfr = (cpu->ifr << 5) | cpu->dfr;
+  /* TODO: Verify this instruction */
+  linc_set_sfr(cpu);
   cpu->ifb = ia;
   cpu_set_flag(cpu, CPU_FLAGS_LIF);
-  cpu_set_flag(cpu, CPU_FLAGS_LIF_II);
+  cpu_set_flag(cpu, CPU_FLAGS_LINC_II);
 }
 
 /*
@@ -637,9 +665,10 @@ INSTRUCTION_A(PDP) {
  * Enable Special Function
  */
 INSTRUCTION_A(ESF) {
-  /* TODO: Implement ESF. */
-  lprintf(LOG_ERROR, "ESF not implemented. Halting.\n");
-  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+  int esf = (cpu->ac >> 4);
+  cpu_set_esf(cpu, esf);
+  if(esf & CPU_ESF_IO_PRESET)
+    cpu_io_preset(cpu);
 }
 
 /*
@@ -698,9 +727,7 @@ INSTRUCTION_A(COM) {
  * Place Special Function Flip-Flops in AC
  */
 INSTRUCTION_A(SFA) {
-  /* TODO: Implement SFA. */
-  lprintf(LOG_ERROR, "SFA not implemented. Halting.\n");
-  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+  cpu_set_ac(cpu, cpu->esf << 4);
 }
 
 /*
@@ -768,7 +795,6 @@ INSTRUCTION_S(SKP) {
  * Execute IO instruction
  */
 INSTRUCTION_A(IOB) {
-  /* TODO: Check if this should be done with a function. */
   /* TODO: Check if PC should be increased before or after iob_io. */
   cpu->ir = linc_read(cpu, cpu->pc);
   iob_io(cpu);
@@ -836,8 +862,13 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     CASE_A(LIF);
     CASE_A(LDF);
   case LINC_OP_TAPE:
-    lprintf(LOG_ERROR, "LINCtape not implemented. Halting.\n");
-    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+    if(!(cpu->esf & CPU_ESF_INSTRUCTION_TRAP &&
+	 cpu->esf & CPU_ESF_TAPE_TRAP)) {
+      
+      lprintf(LOG_ERROR, "LINCtape not implemented. Halting.\n");
+      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+      return;
+    }
     break;
     
   case LINC_OP_EXT1:
@@ -854,8 +885,6 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
       CASE_OPX(1, COM);
       CASE_OPX(1, SFA);
     default:
-      lprintf(LOG_ERROR, "Illegal LINC EXT1 instruction!\n");
-      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
       break;
     }
     break;
@@ -865,6 +894,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     if(!(a & 010)) {
       lprintf(LOG_VERBOSE, "%.4o: SNS I: %o\n", cpu->pc, i);
       skip = instr_SNS(cpu, a);
+      return;
     } else {
       switch(a) {
 	CASE_SKIP(AZE);
@@ -875,13 +905,9 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
 	CASE_SKIP(QLZ);
 	CASE_SKIP(SKP);
       default:
-	lprintf(LOG_ERROR, "Illegal or unknown SKIP instruction.\n");
-	cpu_clear_flag(cpu, CPU_FLAGS_RUN);
-	return;
+	break;
       }
     }
-    if((i && !skip) || (!i && skip))
-      linc_inc_pc(cpu);
     break;
     
   case LINC_OP_EXT2:
@@ -890,16 +916,20 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
       CASE_OPX(2, RSW);
       CASE_OPX(2, LSW);
     default:
-      lprintf(LOG_WARNING, "Unknown EXT2 instruction.\n");
-      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
       break;
     }
     break;
     
   default:
+    break;
+  }
+  
+  if(cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
+    lprintf(LOG_VERBOSE, "Instruction trap in instr_alpha.\n");
+    linc_trap(cpu);
+  } else {
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_alpha!\n");
     cpu_clear_flag(cpu, CPU_FLAGS_RUN);
-    break;
   }
 }
 
@@ -938,9 +968,15 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
     CASE_B(BCO);
     CASE_B(DSC);
   default:
+    break;
+  }
+  
+  if(cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
+    lprintf(LOG_VERBOSE, "Instruction trap in instr_beta.\n");
+    linc_trap(cpu);
+  } else {
     lprintf(LOG_ERROR, "Illegal LINC instruction  in instr_beta!\n");
     cpu_clear_flag(cpu, CPU_FLAGS_RUN);
-    break;
   }
 }
 

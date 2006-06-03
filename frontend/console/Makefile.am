@@ -11,6 +11,9 @@ pdp12c_LDADD =  					\
 	$(top_builddir)/libdecutils/libdecutils.a	\
 	$(top_builddir)/liblog/liblog.a
 
+pdp12c_LDFLAGS=$(AM_LDFLAGS) $(SDL_LIBS)
+pdp12c_CFLAGS=$(AM_CFLAGS) $(SDL_CFLAGS)
+
 paperdump_SOURCES = paperdump.c
 paperdump_LDADD = 					\
 	$(top_builddir)/libdecutils/libdecutils.a	\

@@ -114,6 +114,11 @@
 #define LINC_ADDR_RIGHT  (04000)
 #define LINC_OPERAND_NEGATIVE (04000)
 
+#define LINC_TRAP_SAVE_PC (0140)
+#define LINC_TRAP_PC (0141)
+
+#define LINC_DSC_ADDR_X (01)
+
 void linc_step(cpu_instance* cpu);
 void linc_inc_pc(cpu_instance* cpu);
 int linc_read(cpu_instance* cpu, int addr);
