@@ -37,13 +37,13 @@
 
 static int sdl_available = 0;
 static SDL_Surface* screen = NULL;
-static Uint32 channel_colors[2][0xFF];
+static Uint32 channel_colors[2][0x100];
 
 #endif
 
 #include "shell.h"
 
-unsigned char vr12_surface[512][512][2];
+unsigned char vr12_surface[2][512][512];
 
 static cpu_instance* cpu = NULL;
 
@@ -129,12 +129,12 @@ static void vr12_plot(int x, int y, int channel, void* data) {
   switch(channel) {
   case 0:
   case 1:
-    vr12_surface[x][y][channel] = 0xFF;
+    vr12_surface[channel][x][y] = 0xFF;
     break;
     
   default:
-    vr12_surface[x][y][0] = 0xFF;
-    vr12_surface[x][y][1] = 0xFF;
+    vr12_surface[0][x][y] = 0xFF;
+    vr12_surface[1][x][y] = 0xFF;
     break;
   }
 }
@@ -144,11 +144,11 @@ void vr12_fade() {
   
   for(x = 0; x < 512; x++) {
     for(y = 0; y < 512; y++) {
-      if(vr12_surface[x][y][0] > 10)
-	vr12_surface[x][y][0] -= 10;
+      if(vr12_surface[0][x][y] > 10)
+	vr12_surface[0][x][y] -= 10;
 
-      if(vr12_surface[x][y][1] > 10)
-	vr12_surface[x][y][1] -= 10;
+      if(vr12_surface[1][x][y] > 10)
+	vr12_surface[1][x][y] -= 10;
     }
   }
 }
@@ -166,8 +166,8 @@ void sdl_update() {
   bpp = screen->format->BytesPerPixel;
   for(x = 0; x < 512; x++) {
     for(y = 0; y < 512; y++) {
-      c = channel_colors[0][vr12_surface[x][y][0]];
-      /* c |= channel_colors[1][vr12_surface[x][y][1]]; */
+      c = channel_colors[0][vr12_surface[0][x][y]];
+      c |= channel_colors[1][vr12_surface[1][x][y]];
       
       p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
       
@@ -211,7 +211,7 @@ static void start_emulator(args* a) {
   asr33.printer_flag = 0;
   asr33.data = NULL;
   
-  memset(vr12_surface, '\0', 512*512*2);
+  memset(vr12_surface, '\0', 2*512*512);
   
   vr12.dis = &vr12_plot;
   vr12.dsc_half = NULL;
@@ -247,7 +247,7 @@ static void init_sdl() {
     if(!screen) {
       lprintf(LOG_WARNING, "Failed to create SDL surface (%s), VR12 emulation disabled.\n", SDL_GetError());
     } else {
-      for(i = 0; i <= 0xFF; i++) {
+      for(i = 0; i < 0x100; i++) {
 	channel_colors[0][i] = SDL_MapRGB(screen->format, i, 0, 0);
 	channel_colors[1][i] = SDL_MapRGB(screen->format, 0, i, 0);
       }
