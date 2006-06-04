@@ -109,7 +109,7 @@ static const char* mnemonics_a[] = {NULL,
 
 void linc_inc_pc(cpu_instance* cpu) {
   cpu_set_pc(cpu, 
-	     cpu->pc > CPU_LINC_SEG_SIZE ? 0 : cpu->pc + 1);
+	     (cpu->pc & 06000) | ((cpu->pc + 1) & 01777));
 }
 
 
@@ -980,7 +980,7 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
   }
 }
 
-void linc_step(cpu_instance* cpu) {
+void linc_do(cpu_instance* cpu) {
   lprintf(LOG_DEBUG, "linc_step pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
   
   switch(cpu->ir & 07000) {
@@ -1005,4 +1005,10 @@ void linc_step(cpu_instance* cpu) {
 		 cpu->ir &  01777);
     break;
   }
+}
+
+void linc_step(cpu_instance* cpu) {
+  cpu->ir = linc_read(cpu, cpu->pc);
+  linc_inc_pc(cpu);
+  linc_do(cpu);
 }

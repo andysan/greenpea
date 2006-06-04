@@ -32,8 +32,6 @@ typedef struct cpu_instance_s cpu_instance;
 #define CPU_CORE_SIZE 32768
 
 
-#define CPU_LINC_SEG_SIZE (01777)
-
 /* The following are register locations in the instrcution field
    of a LINC-program. Note that some registers overlap.
 */

@@ -74,11 +74,8 @@ void cpu_io_preset(cpu_instance* cpu) {
 
 void cpu_step(cpu_instance* cpu) {
   if(cpu->flags & CPU_FLAGS_8MODE) {
-    lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
-    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+    pdp8_step(cpu);
   } else {
-    cpu->ir = linc_read(cpu, cpu->pc);
-    linc_inc_pc(cpu);
     linc_step(cpu);
   }
 }
@@ -181,7 +178,7 @@ int cpu_call_ext_level(cpu_instance* cpu, int level) {
 
 void cpu_inc_pc(cpu_instance* cpu) {
   if(cpu->flags & CPU_FLAGS_8MODE) {
-    lprintf(LOG_ERROR, "PDP-8 mode not supported yet!\n");
+    pdp8_inc_pc(cpu);
   } else {
     linc_inc_pc(cpu);
   }

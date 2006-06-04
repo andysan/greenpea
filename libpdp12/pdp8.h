@@ -22,4 +22,22 @@
 #ifndef _PDP8_H
 #define _PDP8_H
 
+#define PDP8_OP_AND   (00)
+#define PDP8_OP_TAD   (01)
+#define PDP8_OP_ISZ   (02)
+#define PDP8_OP_DCA   (03)
+#define PDP8_OP_JMS   (04)
+#define PDP8_OP_JMP   (05)
+#define PDP8_OP_IO    (06)
+#define PDP8_OP_OTHER (07)
+
+void pdp8_do(cpu_instance* cpu);
+void pdp8_step(cpu_instance* cpu);
+void pdp8_inc_pc(cpu_instance* cpu);
+
+int pdp8_read_d(cpu_instance* cpu, int addr);
+void pdp8_write_d(cpu_instance* cpu, int addr, int data);
+int pdp8_read_i(cpu_instance* cpu, int addr);
+void pdp8_write_i(cpu_instance* cpu, int addr, int data);
+
 #endif

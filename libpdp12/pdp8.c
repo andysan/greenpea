@@ -19,4 +19,200 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <liblog/log.h>
+#include "cpu.h"
 #include "pdp8.h"
+
+static const char* mnemonics[] = {"AND",
+				  "TAD",
+				  "ISZ",
+				  "DCA",
+				  "JMS",
+				  "JMP",
+				  "IO",
+				  "OTHER"};
+
+#define INSTRUCTION_M(mn) \
+  static void instr_ ## mn (cpu_instance* cpu, int i, int eaddr)
+
+#define CASE_M(mn)		   \
+  case PDP8_OP_ ## mn:		   \
+    instr_ ## mn(cpu, i, eaddr);      \
+    return;
+
+
+/*
+ * Logical AND to Accumulator
+ */
+INSTRUCTION_M(AND) {
+  int op = !i ? 
+    pdp8_read_i(cpu, eaddr) :
+    pdp8_read_d(cpu, eaddr);
+  
+  cpu_set_ac(cpu, cpu->ac & op);
+}
+
+/*
+ * Two's Complement Add to Accumulator
+ */
+INSTRUCTION_M(TAD) {
+  int op = !i ? 
+    pdp8_read_i(cpu, eaddr) :
+    pdp8_read_d(cpu, eaddr);
+  int sum = op + cpu->ac;
+  
+  cpu_set_ac(cpu, sum & 07777);
+  if(sum & 010000)
+    cpu_set_l(cpu, ~cpu->l);
+}
+
+/*
+ * Increment And Skip If Zero
+ */
+INSTRUCTION_M(ISZ) {
+  int op = !i ? 
+    pdp8_read_i(cpu, eaddr) :
+    pdp8_read_d(cpu, eaddr);
+  
+  int sum = (op + 1) & 07777;
+  
+  if(sum == 0)
+    pdp8_inc_pc(cpu);
+  
+  if(!i)
+    pdp8_write_i(cpu, eaddr, sum);
+  else
+    pdp8_write_d(cpu, eaddr, sum);
+}
+
+/*
+ * Deposit and clear
+ */
+INSTRUCTION_M(DCA) {
+  if(!i)
+    pdp8_write_i(cpu, eaddr, cpu->ac);
+  else
+    pdp8_write_d(cpu, eaddr, cpu->ac);
+  
+  cpu_set_ac(cpu, 0);
+}
+
+/*
+ * Jump to Subroutine
+ */
+INSTRUCTION_M(JMS) {
+  pdp8_write_i(cpu, eaddr, cpu->pc);
+  cpu_set_pc(cpu, (eaddr + 1) & 07777);
+}
+
+/*
+ * Jump
+ */
+INSTRUCTION_M(JMP) {
+  cpu_set_pc(cpu, eaddr);
+}
+
+void pdp8_inc_pc(cpu_instance* cpu) {
+  cpu_set_pc(cpu, (cpu->pc + 1) & 07777);
+}
+
+int pdp8_read_d(cpu_instance* cpu, int addr) {
+  return cpu_read(cpu,
+		  (addr & 07777) | 
+		  ((cpu->dfr & 034) << 10));
+}
+
+void pdp8_write_d(cpu_instance* cpu, int addr, int data) {
+  cpu_write(cpu,
+	    (addr & 07777) | 
+	    ((cpu->dfr & 034) << 10),
+	    data);
+}
+
+int pdp8_read_i(cpu_instance* cpu, int addr) {
+  return cpu_read(cpu,
+		  (addr & 07777) | 
+		  ((cpu->ifr & 034) << 10));
+}
+
+void pdp8_write_i(cpu_instance* cpu, int addr, int data) {
+  cpu_write(cpu,
+	    (addr & 07777) | 
+	    ((cpu->ifr & 034) << 10),
+	    data);
+}
+
+static void instr_mem(cpu_instance* cpu) {
+  int op = cpu->ir & 07000;      /* Operation Code */
+  int i = cpu->ir & 0400;        /* Indirect Addressing */
+  int p = cpu->ir & 0200;        /* Memory Page */
+  int addr = 
+    (p ? cpu->pc & 07600 : 0) || /* This page or page 0? */
+    cpu->ir & 0177;              /* Page Address */
+  
+  int eaddr = i ? 
+    (op == PDP8_OP_JMP || op == PDP8_OP_JMS ? 
+     pdp8_read_i(cpu, addr) : pdp8_read_d(cpu,addr)
+     ): addr;
+  
+  switch(op) {
+    CASE_M(AND);
+    CASE_M(TAD);
+    CASE_M(ISZ);
+    CASE_M(DCA);
+    CASE_M(JMS);
+    CASE_M(JMP);
+  default:
+    lprintf(LOG_ERROR, "Unknown instruction in instr_mem, this shouldn't happen!\n");
+    return;
+  }
+}
+
+static void instr_g1(cpu_instance* cpu) {
+  lprintf(LOG_ERROR, "Instruction group 1 not implemented yet.\n");
+  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+}
+
+static void instr_g2(cpu_instance* cpu) {
+  lprintf(LOG_ERROR, "Instruction group 2 not implemented yet.\n");
+  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+}
+
+static void instr_eae(cpu_instance* cpu) {
+  lprintf(LOG_ERROR, "Extended Arithmetic Element (KE12) instructions not implemented.\n");
+  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+}
+
+void pdp8_do(cpu_instance* cpu) {
+  int op = cpu->ir & 07000;  /* Operation Code */
+  lprintf(LOG_VERBOSE, "%.4o: %s (%.4o)\n", cpu->pc, mnemonics[op], cpu->ir);
+  
+  switch(op) {
+  case PDP8_OP_IO:
+    iob_io(cpu);
+    break;
+      
+  case PDP8_OP_OTHER:
+    if(!(cpu->ir & 0400)) {
+      /* Group 1 */
+      instr_g1(cpu);
+    } else {
+      if(!(cpu->ir & 01)) {
+	/* Group 2 */
+	instr_g2(cpu);
+      } else {
+	/* EAE */
+	instr_eae(cpu);
+      }
+    }
+  default:
+    instr_mem(cpu);
+  }
+}
+
+void pdp8_step(cpu_instance* cpu) {
+  cpu->ir = pdp8_read_i(cpu, cpu->pc);
+  pdp8_inc_pc(cpu);
+  pdp8_do(cpu);
+}
+
