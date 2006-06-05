@@ -457,7 +457,7 @@ INSTRUCTION_A(SET) {
     t = linc_read(cpu,
 		  linc_read(cpu, cpu->pc));
   
-  cpu_write(cpu, a, t);
+  linc_write(cpu, a, t);
   
   linc_inc_pc(cpu);
 }
