@@ -52,9 +52,10 @@ static void cmd_state(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   
   printf("IR: %.4o\tMQ: %.4o\n"
-	 "PC: %.4o\tAC: %.4o\n LINK: %o"
+	 "PC: %.4o\tAC: %.4o\n"
+	 "LINK: %o\n"
 	 "IF: %.2o\t\tDF: %.2o\n"
-	 "FLO: %i 8MODE: %i\n",
+	 "FLO: %i\t8MODE: %i\n",
 	 cpu->ir, cpu->mq,
 	 cpu->pc, cpu->ac, cpu->l,
 	 cpu->ifr, cpu->dfr,
@@ -181,6 +182,16 @@ static void cmd_dump(int argc, char** argp, void* data) {
   printf("\n");
 }
 
+static void cmd_linc(int argc, char** argp, void* data) {
+  cpu_instance* cpu = ((cmd_data*)data)->cpu;
+  cpu_clear_flag(cpu, CPU_FLAGS_8MODE);
+}
+
+static void cmd_pdp8(int argc, char** argp, void* data) {
+  cpu_instance* cpu = ((cmd_data*)data)->cpu;
+  cpu_set_flag(cpu, CPU_FLAGS_8MODE);
+}
+
 static const parser_command cmds[] = {
   {"exit", 0, &cmd_exit, "Exits the emulator", NULL},
   {"state", 0, &cmd_state, "Prints the CPU state.", NULL},
@@ -191,6 +202,8 @@ static const parser_command cmds[] = {
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},
   {"run", 0, &cmd_run, "Runs the loaded program from the loaded PC.", NULL},
   {"dump", 2, &cmd_dump, "Dumps the core to the console.", NULL},
+  {"pdp8", 0, &cmd_pdp8, "Enables PDP-8 mode.", NULL},
+  {"linc", 0, &cmd_linc, "Enables LINC mode.", NULL},
   {NULL, 0, NULL, NULL}
 };
 
