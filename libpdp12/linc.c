@@ -38,13 +38,16 @@
 #define INSTRUCTION_B(mn) \
   static void instr_ ## mn (cpu_instance* cpu, int addr)
 
-#define CASE_D(mn) \
-  case LINC_OP_ ## mn: \
+#define INSTRUCTION_HF(mn) \
+  static void instr_ ## mn (cpu_instance* cpu, int hf, int addr)
+
+#define CASE_D(mn)	      \
+  case LINC_OP_ ## mn:	      \
     instr_ ## mn (cpu, addr); \
     return;
 
-#define CASE_A(mn) \
-  case LINC_OP_ ## mn: \
+#define CASE_A(mn)		  \
+  case LINC_OP_ ## mn:		  \
     instr_ ## mn (cpu, i, a, ia); \
     return;
 
@@ -62,9 +65,14 @@
       linc_inc_pc(cpu);                                        \
     return;
 
-#define CASE_B(mn) \
-  case LINC_OP_ ## mn: \
+#define CASE_B(mn)	      \
+  case LINC_OP_ ## mn:	      \
     instr_ ## mn (cpu, addr); \
+    return;
+
+#define CASE_HF(mn)		  \
+  case LINC_OP_ ## mn:		  \
+    instr_ ## mn (cpu, hf, addr); \
     return;
 
 
@@ -254,18 +262,12 @@ INSTRUCTION_B(LAM) {
 /*
  * Multiply
  */
-INSTRUCTION_B(MUL) {
+INSTRUCTION_HF(MUL) {
   /* The multiplication is to be treated as integer
      multiplication if:
      * i = 1 && b = 0
-     * The highest bit of the b-register (effective address)
+     * The highest bit of the effective address
        is 0.
-       
-     It's however enough to check the highest bit of 
-     the address since it can only be 1 for the
-     under the desired circumstances.
-     
-     TODO: Verify this for i = 0 && b = 0
   */
   int op1 = cpu->ac;
   int op2 = linc_read(cpu, addr);
@@ -279,7 +281,7 @@ INSTRUCTION_B(MUL) {
     op2 = ~op2 & 07777;
   
   t = (op1 & 03777) * (op2 & 03777);
-  if(addr & LINC_ADDR_FRACTION) {
+  if(hf) {
     printf("Fraction\n");
     /* Fractional multiplication */
     cpu_set_ac(cpu,
@@ -304,8 +306,11 @@ INSTRUCTION_B(LDA) {
 /*
  * Load Accumulator (half)
  */
-INSTRUCTION_B(LDH) {
-  cpu_set_ac(cpu, linc_read(cpu, addr));
+INSTRUCTION_HF(LDH) {
+  if(hf)
+    cpu_set_ac(cpu, linc_read(cpu, addr) & 077);
+  else
+    cpu_set_ac(cpu, linc_read(cpu, addr) >> 6);
 }
 
 
@@ -328,8 +333,13 @@ INSTRUCTION_B(STA) {
 /*
  * Store Accumulator (half)
  */
-INSTRUCTION_B(STH) {
-  linc_write(cpu, addr, cpu->ac);	     
+INSTRUCTION_HF(STH) {
+  if(hf)
+    linc_write(cpu, addr, 
+	       (linc_read(cpu, addr) & 07700) | (cpu->ac & 077));
+  else
+    linc_write(cpu, addr, 
+	       (linc_read(cpu, addr) & 077) | ((cpu->ac & 077) << 6));
 }
 
 /*
@@ -369,7 +379,7 @@ INSTRUCTION_A(ROR) {
   int m = cpu->mq;
   int r;
 
-  if(i & cpu->l)
+  if(i && cpu->l)
     t |= 010000;
   
   if(a < 12)
@@ -528,9 +538,10 @@ INSTRUCTION_B(SAE) {
  * Right half AC unequal to specified
  * half of memory register Y.
  */
-INSTRUCTION_B(SHD) {
+INSTRUCTION_HF(SHD) {
   int op = linc_read(cpu, addr);
-  if(!(addr & LINC_ADDR_RIGHT))
+  
+  if(!hf)
     op = op >> 6;
   
   if((op & 077) != (cpu->ac & 077))
@@ -942,7 +953,11 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
  */
 static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
   int addr = beta_addr(cpu, i, b);
-  
+  /* Should we use the right half?
+   * Or in case of MUL, are we dealing with fractions?
+   */
+  int hf = addr & LINC_ADDR_RIGHT || (i == 0 && b == 0);
+    
   lprintf(LOG_VERBOSE, "%.4o: %s %s 0%o (%.4o)\n",
 	  cpu->pc,
 	  mnemonics_b[op],
@@ -959,10 +974,10 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
     CASE_B(ADA);
     CASE_B(ADM);
     CASE_B(LAM);
-    CASE_B(MUL);
-    CASE_B(LDH);
-    CASE_B(STH);
-    CASE_B(SHD);
+    CASE_HF(MUL);
+    CASE_HF(LDH);
+    CASE_HF(STH);
+    CASE_HF(SHD);
     CASE_B(SAE);
     CASE_B(SRO);
     CASE_B(BCL);

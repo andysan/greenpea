@@ -167,6 +167,9 @@ void sdl_update() {
   Uint32 c;
   int x, y;
   
+  if(!screen)
+    return;
+  
   if(SDL_LockSurface(screen) == -1)
     return;
   
