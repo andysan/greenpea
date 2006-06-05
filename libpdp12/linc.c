@@ -677,6 +677,7 @@ INSTRUCTION_A(HLT) {
  * Switch to PDP8 mode
  */
 INSTRUCTION_A(PDP) {
+  lprintf(LOG_VERBOSE, "Switching to PDP8 mode.\n");
   cpu_set_flag(cpu, CPU_FLAGS_8MODE);
 }
 
@@ -1033,7 +1034,7 @@ void linc_do(cpu_instance* cpu) {
 }
 
 void linc_step(cpu_instance* cpu) {
-  cpu->ir = linc_read(cpu, cpu->pc);
+  cpu->ir = linc_read(cpu, cpu->pc & 01777);
   linc_inc_pc(cpu);
   linc_do(cpu);
 }

@@ -19,6 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/* TODO: BIG FAT TODO! Implement autoindexing */
+
 #include <liblog/log.h>
 #include "cpu.h"
 #include "pdp8.h"
@@ -150,13 +152,13 @@ static void instr_mem(cpu_instance* cpu) {
   int i = cpu->ir & 0400;        /* Indirect Addressing */
   int p = cpu->ir & 0200;        /* Memory Page */
   int addr = 
-    (p ? cpu->pc & 07600 : 0) || /* This page or page 0? */
-    cpu->ir & 0177;              /* Page Address */
+    (p ? cpu->pc & 07600 : 0) |  /* This page or page 0? */
+    (cpu->ir & 0177);            /* Page Address */
   
   int eaddr = i ? 
-    (op == PDP8_OP_JMP || op == PDP8_OP_JMS ? 
-     pdp8_read_i(cpu, addr) : pdp8_read_d(cpu,addr)
-     ): addr;
+    (op == PDP8_OP_JMP || op == PDP8_OP_JMS 
+     ? pdp8_read_i(cpu, addr) : pdp8_read_d(cpu,addr))
+    : addr;
   
   switch(op) {
     CASE_M(AND);
