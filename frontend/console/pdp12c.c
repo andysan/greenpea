@@ -127,8 +127,8 @@ static void sig_int(int signum) {
   }
 }
 
-static void asr33_print(char c, void* data) {
-  lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c, c);
+static void asr33_print(unsigned char c, void* data) {
+  lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", (unsigned int)c, (unsigned int)c);
   cpu->asr33->printer_flag = 0;
 }
 

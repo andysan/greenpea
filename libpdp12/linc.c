@@ -150,8 +150,9 @@ void linc_write(cpu_instance* cpu, int addr, int data) {
  * Note: If beta == 0, skip next instruction.
  *
  */
-static int beta_addr(cpu_instance* cpu, int i, int b) {
+static int beta_addr(cpu_instance* cpu, int op, int i, int b) {
   int temp;
+  
   if(b == 0) {
     temp = cpu->pc;
     
@@ -162,7 +163,16 @@ static int beta_addr(cpu_instance* cpu, int i, int b) {
   } else {
     temp = linc_read(cpu, b);
     if(i) {
-      temp = ((temp + 1) & 01777) | (temp & 06000);
+      if(op == LINC_OP_LDH ||
+	 op == LINC_OP_STH ||
+	 op == LINC_OP_SHD) {
+	/* Bloody half word instructions! They're a bloody mess! */
+	temp += LINC_ADDR_RIGHT;
+	if(temp & 010000)
+	  temp = ((temp + 1) & 01777) | (temp & 06000);
+      } else {
+	temp = ((temp + 1) & 01777) | (temp & 06000);
+      }
       linc_write(cpu, b, temp);
     }
     
@@ -282,12 +292,10 @@ INSTRUCTION_HF(MUL) {
   
   t = (op1 & 03777) * (op2 & 03777);
   if(hf) {
-    printf("Fraction\n");
     /* Fractional multiplication */
     cpu_set_ac(cpu,
 	       (((sign ? ~t : t) >> 11) & 03777) | sign);
   } else {
-    printf("Integer\n");
     /* Integer multiplication */
     cpu_set_ac(cpu,
 	       ((sign ? ~t : t) & 03777) | sign);
@@ -952,12 +960,12 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
  * +-------+---------+---+-----------+
  */
 static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
-  int addr = beta_addr(cpu, i, b);
+  int addr = beta_addr(cpu, op, i, b);
   /* Should we use the right half?
    * Or in case of MUL, are we dealing with fractions?
    */
-  int hf = addr & LINC_ADDR_RIGHT || (i == 0 && b == 0);
-    
+  int hf = addr & LINC_ADDR_RIGHT && !(i && b == 0);
+  
   lprintf(LOG_VERBOSE, "%.4o: %s %s 0%o (%.4o)\n",
 	  cpu->pc,
 	  mnemonics_b[op],

@@ -61,7 +61,8 @@ void iob_io(cpu_instance* cpu) {
   if(pdp12_io(cpu))
     return;
   
-  asr33_instr(cpu);
+  if(asr33_instr(cpu))
+    return;
   
   if(!cpu->devices)
     return;

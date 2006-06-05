@@ -29,7 +29,7 @@ typedef struct asr33_s {
   /* Called when the instruction to print a character on the ASR33 is called.
    * Is responsible for setting the printer_flag when printing is done.
    */
-  void (*print)(char c, void* data);
+  void (*print)(unsigned char c, void* data);
   char (*read)(void* data);
   
   int keyboard_flag : 1;
@@ -38,7 +38,7 @@ typedef struct asr33_s {
   void* data;
 } asr33;
 
-void asr33_instr(cpu_instance* cpu);
+int asr33_instr(cpu_instance* cpu);
 void asr33_reset(cpu_instance* cpu);
 
 #endif

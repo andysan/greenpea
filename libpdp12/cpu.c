@@ -140,10 +140,8 @@ void cpu_write(cpu_instance* cpu, int ma, int mb) {
   lprintf(LOG_DEBUG, "cpu_write: %.4o %.4o\n", ma, mb);
   if(ma > CPU_CORE_SIZE)
     lprintf(LOG_ERROR, "Address out of range in cpu_write.\n");
-  else if(mb > 07777)
-    lprintf(LOG_ERROR, "Illegal word size in cpu_write.\n");
   else
-    cpu->core[ma] = mb;
+    cpu->core[ma] = mb & 07777;
 }
 
 int cpu_read(cpu_instance* cpu, int ma) {
