@@ -389,8 +389,8 @@ INSTRUCTION_A(ROR) {
     t = (t >> r) | (t << (12 - r));
   }
   
-  cpu_set_mq(cpu, m & 07777);
-  cpu_set_ac(cpu, t & 07777);
+  cpu_set_mq(cpu, m);
+  cpu_set_ac(cpu, t);
 }
 
 /*
@@ -408,7 +408,7 @@ INSTRUCTION_A(SCR) {
     cpu_set_l(cpu, t & 04000);
   
   cpu_set_ac(cpu, t >> 12);
-  cpu_set_mq(cpu, t & 07777);
+  cpu_set_mq(cpu, t);
 }
 
 /*
@@ -720,7 +720,7 @@ INSTRUCTION_A(NOP) {
  * Complement AC.
  */
 INSTRUCTION_A(COM) {
-  cpu_set_ac(cpu, (~cpu->ac) & 07777);
+  cpu_set_ac(cpu, ~cpu->ac);
 }
 
 /*

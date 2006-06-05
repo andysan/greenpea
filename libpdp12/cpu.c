@@ -82,17 +82,17 @@ void cpu_step(cpu_instance* cpu) {
 
 void cpu_set_ac(cpu_instance* cpu, int ac) {
   lprintf(LOG_DEBUG, "cpu_set_ac %.4o\n", ac);
-  cpu->ac = ac;
+  cpu->ac = ac & 07777;
 }
 
 void cpu_set_pc(cpu_instance* cpu, int pc) {
   lprintf(LOG_DEBUG, "cpu_set_pc %.4o\n", pc);
-  cpu->pc = pc;
+  cpu->pc = pc & 07777;
 }
 
 void cpu_set_mq(cpu_instance* cpu, int mq) {
   lprintf(LOG_DEBUG, "cpu_set_mq %.4o\n", mq);
-  cpu->mq = mq;
+  cpu->mq = mq & 07777;
 }
 
 void cpu_set_l(cpu_instance* cpu, int l) {

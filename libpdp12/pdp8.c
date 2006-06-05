@@ -35,11 +35,14 @@ static const char* mnemonics[] = {"AND",
 #define INSTRUCTION_M(mn) \
   static void instr_ ## mn (cpu_instance* cpu, int i, int eaddr)
 
-#define CASE_M(mn)		   \
-  case PDP8_OP_ ## mn:		   \
+#define CASE_M(mn)		      \
+  case PDP8_OP_ ## mn:		      \
     instr_ ## mn(cpu, i, eaddr);      \
     return;
 
+#define G(n, mn) (cpu->ir & PDP8_G ## n ## _ ## mn)
+
+#define SKIP skip = sense ? skip && 1 : skip || 1;
 
 /*
  * Logical AND to Accumulator
@@ -169,23 +172,98 @@ static void instr_mem(cpu_instance* cpu) {
 }
 
 static void instr_g1(cpu_instance* cpu) {
-  lprintf(LOG_ERROR, "Instruction group 1 not implemented yet.\n");
-  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+  int temp;
+  int rot = (cpu->ir & PDP8_G1_ROTX2) ? 2 : 1;
+
+  if(G(1, CLA))
+    cpu_set_ac(cpu, 0);
+  
+  if(G(1, CLL))
+    cpu_set_l(cpu, 0);
+  
+  if(G(1, CMA))
+    cpu_set_ac(cpu, ~cpu->ac);
+  
+  if(G(1, CML))
+    cpu_set_l(cpu, ~cpu->l);
+  
+  if(G(1, IAC)) {
+    temp = cpu->ac + 1;
+    cpu_set_ac(cpu, temp);
+    if(temp & 010000)
+      cpu_set_l(cpu, ~cpu->l);
+  }
+  
+  if(G(1, RAR)) {
+    temp = (cpu->l << 12) | cpu->ac;
+    temp = (temp >> rot) | (temp << (13 - rot));
+    cpu_set_ac(cpu, temp);
+    cpu_set_l(cpu, temp & 010000);
+  }
+  
+  if(G(1, RAL)) {
+    temp = (cpu->l << 12) | cpu->ac;
+    temp = (temp << rot) | (temp >> (13 - rot));
+    cpu_set_ac(cpu, temp);
+    cpu_set_l(cpu, temp & 010000);
+  }
 }
 
 static void instr_g2(cpu_instance* cpu) {
-  lprintf(LOG_ERROR, "Instruction group 2 not implemented yet.\n");
-  cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+  int sense = cpu->ir & PDP8_G2_SENSE;
+  int skip = sense ? 1 : 0;
+  
+  /* SMA */
+  if(G(2, SMA) && !sense && 
+     cpu->ac & 04000)
+    SKIP;
+  
+  /* SPA */
+  if(G(2, SMA) && sense && 
+     ~cpu->ac & 04000)
+    SKIP;
+  
+  /* SZA */
+  if(G(2, SZA) && !sense &&
+     cpu->ac == 0)
+    SKIP;
+  
+  /* SNA */
+  if(G(2, SZA) && sense &&
+     cpu->ac != 0)
+    SKIP;
+  
+  /* SNL */
+  if(G(2, SNL) && !sense &&
+     cpu->l != 0)
+    SKIP;
+  
+  /* SZL */
+  if(G(2, SNL) && sense &&
+     cpu->l == 0)
+    SKIP;
+  
+  if(skip)
+  
+  if(G(2, CLA))
+    cpu_set_ac(cpu, 0);
+  
+  if(G(2, OSR))
+    cpu_set_ac(cpu, cpu->rs);
+  
+  if(G(2, HLT))
+    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+  
 }
 
 static void instr_eae(cpu_instance* cpu) {
-  lprintf(LOG_ERROR, "Extended Arithmetic Element (KE12) instructions not implemented.\n");
+  lprintf(LOG_ERROR, "Extended Arithmetic Element (KE12) not implemented.\n");
   cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
 void pdp8_do(cpu_instance* cpu) {
   int op = cpu->ir & 07000;  /* Operation Code */
-  lprintf(LOG_VERBOSE, "%.4o: %s (%.4o)\n", cpu->pc, mnemonics[op], cpu->ir);
+  lprintf(LOG_VERBOSE, "%.4o: %s (%.4o)\n", cpu->pc, mnemonics[op >> 9], cpu->ir);
   
   switch(op) {
   case PDP8_OP_IO:
@@ -193,20 +271,23 @@ void pdp8_do(cpu_instance* cpu) {
     break;
       
   case PDP8_OP_OTHER:
-    if(!(cpu->ir & 0400)) {
-      /* Group 1 */
-      instr_g1(cpu);
-    } else {
-      if(!(cpu->ir & 01)) {
-	/* Group 2 */
-	instr_g2(cpu);
-      } else {
+    if(cpu->ir & PDP8_G2) {
+      if(cpu->ir & PDP8_G2_EAE) {
 	/* EAE */
 	instr_eae(cpu);
+      } else {
+	/* Group 2 */
+	instr_g2(cpu);
       }
+    } else {
+      /* Group 1 */
+      instr_g1(cpu);
     }
+    break;
+    
   default:
     instr_mem(cpu);
+    break;
   }
 }
 
