@@ -533,7 +533,7 @@ INSTRUCTION_B(SHD) {
   if(!(addr & LINC_ADDR_RIGHT))
     op = op >> 6;
   
-  if((op & 077) == (cpu->ac & 077))
+  if((op & 077) != (cpu->ac & 077))
     linc_inc_pc(cpu);
 }
 
