@@ -894,6 +894,8 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     if(!(a & 010)) {
       lprintf(LOG_VERBOSE, "%.4o: SNS I: %o\n", cpu->pc, i);
       skip = instr_SNS(cpu, a);
+      if((i && !skip) || (!i && skip))
+	linc_inc_pc(cpu);
       return;
     } else {
       switch(a) {
