@@ -539,18 +539,18 @@ INSTRUCTION_B(SHD) {
 
 /*
  * Skip and Rotate
- * If the least significant bit of the operand is 0,
- * the operand is rotated right 1 place and the
- * next instruction is skipped.
+ * Skip the next instruction if the least significant
+ * bit of the operand is 0. Always rotates the operand 1 step
+ * to the right.
  */
 INSTRUCTION_B(SRO) {
   int op = linc_read(cpu, addr);
   
-  if(!(op & 01)) {
-    linc_write(cpu, addr,
-	       (op >> 1) | ((op & 1) << 11));
+  if(!(op & 01))
     linc_inc_pc(cpu);
-  }
+  
+  linc_write(cpu, addr,
+	     (op >> 1) | ((op & 1) << 11));
 }
 
 /*
