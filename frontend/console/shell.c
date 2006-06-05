@@ -55,12 +55,14 @@ static void cmd_state(int argc, char** argp, void* data) {
 	 "PC: %.4o\tAC: %.4o\n"
 	 "LINK: %o\n"
 	 "IF: %.2o\t\tDF: %.2o\n"
-	 "FLO: %i\t8MODE: %i\n",
+	 "FLO: %i\t8MODE: %i\n"
+	 "SS: %.2o\tLS: %.4o\tRS: %.4o\n",
 	 cpu->ir, cpu->mq,
 	 cpu->pc, cpu->ac, cpu->l,
 	 cpu->ifr, cpu->dfr,
  	 cpu->flags & CPU_FLAGS_FLO ? 1 : 0,
- 	 cpu->flags & CPU_FLAGS_8MODE ? 1 : 0);
+ 	 cpu->flags & CPU_FLAGS_8MODE ? 1 : 0,
+	 cpu->ss, cpu->ls, cpu->rs);
 	 
 }
 
@@ -149,8 +151,12 @@ static void cmd_set(int argc, char** argp, void* data) {
       cpu->ifr = value;
     else if(!strcmp(reg, "df"))
       cpu->dfr = value;
-    else if(!strcmp(reg, "sense"))
+    else if(!strcmp(reg, "ss"))
       cpu->ss = value;
+    else if(!strcmp(reg, "ls"))
+      cpu->ls = value;
+    else if(!strcmp(reg, "rs"))
+      cpu->rs = value;
     else
       lprintf(LOG_ERROR, "Invalid register specified!\n");
   }
