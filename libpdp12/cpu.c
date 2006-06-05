@@ -40,7 +40,7 @@ cpu_instance* cpu_create() {
   cpu->mq = 0;
   cpu->ir = 0;
   cpu->ifr = 02;
-  cpu->dfr = 0;
+  cpu->dfr = 03;
   cpu->relays = 0;
   
   /* State */
@@ -124,14 +124,17 @@ void cpu_set_relays(cpu_instance* cpu, int r) {
 }
 
 void cpu_set_ifr(cpu_instance* cpu, int n) {
+  lprintf(LOG_DEBUG, "cpu_set_ifr: %.2o\n", n);
   cpu->ifr = n & 037;
 }
 
 void cpu_set_dfr(cpu_instance* cpu, int n) {
+  lprintf(LOG_DEBUG, "cpu_set_dfr: %.2o\n", n);
   cpu->dfr = n & 037;
 }
 
 void cpu_set_esf(cpu_instance* cpu, int n) {
+  lprintf(LOG_DEBUG, "cpu_set_esf: %.2o\n", n);
   cpu->esf = n & 076;
 }
 

@@ -39,6 +39,8 @@ static int pdp12_io(cpu_instance* cpu) {
   case IOB_LINC:
     lprintf(LOG_VERBOSE, "Switching to LINC mode.\n");
     cpu_clear_flag(cpu, CPU_FLAGS_8MODE);
+    cpu_set_ifr(cpu, (cpu->ifr & 034) | (cpu->pc >> 10));
+    cpu_set_pc(cpu, cpu->pc & 01777);
     return 1;
 
   case IOB_RIF:

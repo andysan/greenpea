@@ -670,6 +670,7 @@ INSTRUCTION_A(LDF) {
  * Halt execution
  */
 INSTRUCTION_A(HLT) {
+  lprintf(LOG_NORMAL, "Halted at %.4o\n", cpu->pc);
   cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
@@ -679,6 +680,7 @@ INSTRUCTION_A(HLT) {
 INSTRUCTION_A(PDP) {
   lprintf(LOG_VERBOSE, "Switching to PDP8 mode.\n");
   cpu_set_flag(cpu, CPU_FLAGS_8MODE);
+  cpu_set_pc(cpu, (cpu->pc & 01777) | ((cpu->ifr & 03) << 10));
 }
 
 /*
@@ -801,7 +803,7 @@ INSTRUCTION_S(FLO) {
  * MQ Low-Order Bit Zero
  */
 INSTRUCTION_S(QLZ) {
-  return !(cpu->mq & 04000);
+  return !(cpu->mq & 01);
 }
 
 /*
