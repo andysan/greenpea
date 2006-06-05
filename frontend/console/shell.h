@@ -21,6 +21,9 @@
 #ifndef _SHELL_H
 #define _SHELL_H
 
-void start_shell(cpu_instance* cpu);
+#define MAX_SCRIPT_LINE_LENGTH (1024)
+
+void shell_script(cpu_instance* cpu, const char* name);
+void shell_start(cpu_instance* cpu);
 
 #endif

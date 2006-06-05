@@ -41,6 +41,7 @@ static Uint32 channel_colors[2][0x100];
 
 #endif
 
+#include "readln.h"
 #include "shell.h"
 
 unsigned char vr12_surface[2][512][512];
@@ -55,6 +56,7 @@ const char* argp_program_bug_address = "<andreas@sandberg.pp.se>";
 
 typedef struct {
   char* core;
+  char* script;
   int no_vr12;
 } args;
 
@@ -62,6 +64,7 @@ const struct argp_option options[] = {
   { "debug", 'd', "level", 0, "Modifies the debug output threshold"},
   { "verbose", 'v', NULL, 0, "Produce verbose output"},
   { "no-vr12", 'n', NULL, 0, "Disable the emulation of the VR12 display."},
+  { "script", 's', "FILE", 0, "The script FILE on startup."},
   { NULL, 0, NULL, 0, NULL}
 };
 
@@ -81,6 +84,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
     
   case 'n':
     a->no_vr12 = 1;
+    break;
+    
+  case 's':
+    a->script = arg;
     break;
     
   case ARGP_KEY_ARG:
@@ -225,7 +232,10 @@ static void start_emulator(args* a) {
   cpu->asr33 = &asr33;
   cpu->vr12 = &vr12;
   
-  start_shell(cpu);
+  if(a->script)
+    shell_script(cpu, a->script);
+  
+  shell_start(cpu);
   
   /*
   for(i = 0; devices[i]; i++)
@@ -260,6 +270,7 @@ int main(int argc, char** argp) {
   args a;
   
   a.core = NULL;
+  a.script = NULL;
   a.no_vr12 = 0;
   
   argp_parse(&a_argp, argc, argp, 0, NULL, &a);

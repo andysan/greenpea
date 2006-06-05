@@ -113,7 +113,7 @@ static void cmd_run(int argc, char** argp, void* data) {
   lprintf(LOG_VERBOSE, "Running...\n");
   while(cpu->flags & CPU_FLAGS_RUN) {
     i++;
-    cpu_step(((cmd_data*)data)->cpu);
+    cpu_step(cpu);
     if(i % 1000 == 0) {
       vr12_fade();
 #ifdef HAVE_SDL
@@ -198,11 +198,18 @@ static void cmd_pdp8(int argc, char** argp, void* data) {
   cpu_set_flag(cpu, CPU_FLAGS_8MODE);
 }
 
+static void cmd_script(int argc, char** argp, void* data) {
+  cpu_instance* cpu = ((cmd_data*)data)->cpu;
+  shell_script(cpu, argp[1]);
+}
+
 static const parser_command cmds[] = {
   {"exit", 0, &cmd_exit, "Exits the emulator", NULL},
   {"state", 0, &cmd_state, "Prints the CPU state.", NULL},
   {"load", -1, &cmd_load, "Loads a paper tape into memory.",
    "load FILENAME [LOAD OFFSET]\nLoads FILENAME into memory."},
+  {"script", 1, &cmd_script, "Executes a script.",
+   "script FILENAME\nExecutes the commands in FILENAME."},
   {"set", 2, &cmd_set, "Sets a processor register or memory address.",
    "set REGISTER VALUE\nSets REGISTER to the value VALUE."},
   {"step", 0, &cmd_step, "Executes the next instruction.", NULL},
@@ -213,7 +220,35 @@ static const parser_command cmds[] = {
   {NULL, 0, NULL, NULL}
 };
 
-void start_shell(cpu_instance* cpu) {
+void shell_script(cpu_instance* cpu, const char* name) {
+  FILE* script;
+  char* cmd = malloc(MAX_SCRIPT_LINE_LENGTH);
+  cmd_data cd;
+  
+  cd.cpu = cpu;
+  cd.end = 0;
+  
+  script = fopen(name, "r");
+  if(script) {
+    do {
+      fgets(cmd, MAX_SCRIPT_LINE_LENGTH, script);
+      if(!feof(script)) {
+	lprintf(LOG_NORMAL, "PDP12>%s", cmd);
+	parser_exec(cmds, &cd, cmd);
+      } else {
+	break;
+      }
+    } while(!cd.end);
+    fclose(script);
+  } else {
+    lprintf(LOG_ERROR, "The script '%s' can't be opened: %s\n",
+	    name, strerror(errno));
+  }
+  
+  free(cmd);
+}
+
+void shell_start(cpu_instance* cpu) {
   char* c;
   cmd_data cd;
   
