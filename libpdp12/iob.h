@@ -22,6 +22,15 @@
 #ifndef _IOB_H
 #define _IOB_H
 
+#define IOB_ION  (06001)
+#define IOB_IOF  (06002)
+#define IOB_LINC (06141)
+#define IOB_RIF  (06224)
+#define IOB_RDF  (06214)
+#define IOB_RIB  (06234)
+#define IOB_RMF  (06244)
+
+
 typedef struct io_device_s{
   /* Data to be passed to all IO instructions */
   void* data;

@@ -24,9 +24,42 @@
 #include "iob.h"
 #include "asr33.h"
 
+static int pdp12_io(cpu_instance* cpu) {
+  switch(cpu->ir) {
+  case IOB_ION:
+    lprintf(LOG_VERBOSE, "Enabling interrupts.\n");
+    cpu_set_flag(cpu, CPU_FLAGS_ION);
+    return 1;
+    
+  case IOB_IOF: 
+    lprintf(LOG_VERBOSE, "Disabling interrupts.\n");
+    cpu_clear_flag(cpu, CPU_FLAGS_ION);
+    return 1;
+
+  case IOB_LINC:
+    lprintf(LOG_VERBOSE, "Switching to LINC mode.\n");
+    cpu_clear_flag(cpu, CPU_FLAGS_8MODE);
+    return 1;
+
+  case IOB_RIF:
+  case IOB_RDF:
+  case IOB_RIB:
+    lprintf(LOG_ERROR, "IO instruction not implemented. Halting.\n");
+    cpu_clear_flag(cpu, CPU_FLAGS_RUN);
+    return 1;
+    
+  default:
+    return 0;
+  }
+  
+}
+
 void iob_io(cpu_instance* cpu) {
   io_device* dev;
   int i;
+  
+  if(pdp12_io(cpu))
+    return;
   
   asr33_instr(cpu);
   

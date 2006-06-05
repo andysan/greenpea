@@ -43,8 +43,6 @@
 void asr33_instr(cpu_instance* cpu) {
   asr33* asr33 = cpu->asr33;
   
-  lprintf(LOG_VERBOSE, "asr33_io: %.4o\n", cpu->ir);
-  
   if(!asr33)
     return;
   
