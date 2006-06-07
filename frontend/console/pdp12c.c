@@ -28,8 +28,8 @@
 #include <signal.h>
 #include <libpdp12/cpu.h>
 #include <libpdp12/iob.h>
-#include <libdecutils/rim.h>
-#include <liblog/log.h>
+#include <libpdp12utils/rim.h>
+#include <libpdp12utils/log.h>
 #include <argp.h>
 
 #ifdef HAVE_SDL

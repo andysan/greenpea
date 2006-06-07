@@ -19,7 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <liblog/log.h>
+#include <libpdp12utils/log.h>
 #include "cpu.h"
 #include "iob.h"
 #include "asr33.h"

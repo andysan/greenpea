@@ -21,7 +21,7 @@
 
 /* TODO: BIG FAT TODO! Implement autoindexing */
 
-#include <liblog/log.h>
+#include <libpdp12utils/log.h>
 #include "cpu.h"
 #include "pdp8.h"
 

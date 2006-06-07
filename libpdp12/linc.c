@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <liblog/log.h>
+#include <libpdp12utils/log.h>
 #include "cpu.h"
 #include "linc.h"
 

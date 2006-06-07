@@ -1,4 +1,4 @@
-SUBDIRS = libpdp12 libdecutils liblog frontend
+SUBDIRS = libpdp12 libpdp12utils frontend
 EXTRA_DIST = pdp12-emu.spec
 
 rpm: dist-gzip

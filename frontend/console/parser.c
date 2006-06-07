@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <liblog/log.h>
+#include <libpdp12utils/log.h>
 #include "parser.h"
 
 typedef enum {

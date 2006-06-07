@@ -27,8 +27,8 @@
 #include <string.h>
 #include <argp.h>
 #include <errno.h>
-#include <libdecutils/rim.h>
-#include <liblog/log.h>
+#include <libpdp12utils/rim.h>
+#include <libpdp12utils/log.h>
 
 const char* argp_program_version =
   "PDP12 paper tape dumper version " VERSION ".\n"

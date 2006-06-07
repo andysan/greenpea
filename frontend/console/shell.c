@@ -27,8 +27,8 @@
 #include <errno.h>
 
 #include <libpdp12/cpu.h>
-#include <libdecutils/rim.h>
-#include <liblog/log.h>
+#include <libpdp12utils/rim.h>
+#include <libpdp12utils/log.h>
 
 #include "shell.h"
 #include "readln.h"

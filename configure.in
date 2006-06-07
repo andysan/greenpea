@@ -38,8 +38,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile]
 		[pdp12-emu.spec]
 		[libpdp12/Makefile]
-		[libdecutils/Makefile]
-		[liblog/Makefile]
+		[libpdp12utils/Makefile]
 		[frontend/Makefile]
 		[frontend/console/Makefile])
 AC_OUTPUT

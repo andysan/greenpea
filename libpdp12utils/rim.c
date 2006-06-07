@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <liblog/log.h>
+#include <libpdp12utils/log.h>
 #include "rim.h"
 
 int load_rim(FILE* file, int offset, int* core, int core_size) {
