@@ -108,7 +108,9 @@ static void cmd_step(int argc, char** argp, void* data) {
 static void cmd_run(int argc, char** argp, void* data) {
   cpu_instance* cpu = ((cmd_data*)data)->cpu;
   unsigned int i = 0;
-
+  clock_t start = clock();
+  clock_t stop;
+  
   cpu_set_flag(cpu, CPU_FLAGS_RUN);
   lprintf(LOG_VERBOSE, "Running...\n");
   while(cpu->flags & CPU_FLAGS_RUN) {
@@ -121,7 +123,14 @@ static void cmd_run(int argc, char** argp, void* data) {
 #endif
     }
   }
-  lprintf(LOG_VERBOSE, "Halted at %.4o.\n", cpu->pc);
+  stop = clock();
+  
+  lprintf(LOG_NORMAL, "Halted at %.4o.\n", cpu->pc);
+  lprintf(LOG_NORMAL, "Did %i instructions in %f seconds (%f i/s)\n",
+	  i, 
+	  ((double)(stop - start))/((double)CLOCKS_PER_SEC), 
+	  ((double)i * (double)CLOCKS_PER_SEC)/((double)(stop - start))
+	  );
 }
 
 static void cmd_set(int argc, char** argp, void* data) {

@@ -670,7 +670,6 @@ INSTRUCTION_A(LDF) {
  * Halt execution
  */
 INSTRUCTION_A(HLT) {
-  lprintf(LOG_NORMAL, "Halted at %.4o\n", cpu->pc);
   cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 

@@ -254,7 +254,6 @@ static void instr_g2(cpu_instance* cpu) {
     cpu_set_ac(cpu, cpu->rs);
   
   if(G(2, HLT)) {
-    lprintf(LOG_NORMAL, "Halted at %.4o\n", cpu->pc);
     cpu_clear_flag(cpu, CPU_FLAGS_RUN);
   }
   
