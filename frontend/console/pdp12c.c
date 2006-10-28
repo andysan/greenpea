@@ -128,8 +128,12 @@ static void sig_int(int signum) {
 }
 
 static void asr33_print(unsigned char c, void* data) {
-  lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c & 0177, c);
-  cpu->asr33->printer_flag = 0;
+  if(log_level <= LOG_VERBOSE)
+    lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c & 0177, c);
+  else
+    lprintf(LOG_NORMAL, "%c", c & 0177);
+    
+  cpu->asr33->printer_flag = 1;
 }
 
 static void vr12_plot(int x, int y, int channel, void* data) {
@@ -218,7 +222,7 @@ static void start_emulator(args* a) {
   asr33.print = &asr33_print;
   asr33.read = NULL;
   asr33.keyboard_flag = 0;
-  asr33.printer_flag = 0;
+  asr33.printer_flag = 1;
   asr33.data = NULL;
   
   memset(vr12_surface, '\0', 2*512*512);

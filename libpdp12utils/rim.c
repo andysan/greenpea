@@ -77,8 +77,15 @@ int load_rim(FILE* file, int offset, int* core, int core_size) {
     if(b1 & 0100)
       addr = word;
     else {
-      core[addr++] = word;
-      count++;
+      if(addr >= 0 && addr < core_size) {
+	core[addr++] = word;
+	count++;
+      } else {
+	lprintf(LOG_ERROR,
+		"Address (%.4o) outside allocated core! Failing.\n",
+		addr);
+      }
+	
     }
   }
   

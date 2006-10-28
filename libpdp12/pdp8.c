@@ -44,7 +44,7 @@ static const char* mnemonics[] = {"AND",
 
 #define G(n, mn) (cpu->ir & PDP8_G ## n ## _ ## mn)
 
-#define SKIP skip = sense ? skip && 1 : skip || 1;
+#define SKIP(c) skip = sense ? skip && (c) : skip || (c);
 
 /*
  * Logical AND to Accumulator
@@ -159,6 +159,16 @@ static void instr_mem(cpu_instance* cpu) {
     (op == PDP8_OP_JMP || op == PDP8_OP_JMS 
      ? pdp8_read_i(cpu, addr) : pdp8_read_d(cpu,addr))
     : addr;
+
+  if(i && addr >= 010 && addr <= 017) {
+    eaddr = (eaddr + 1) & 07777;
+    if(op == PDP8_OP_JMP || op == PDP8_OP_JMS)
+      pdp8_write_i(cpu, addr, eaddr);
+    else
+      pdp8_write_d(cpu, addr, eaddr);
+  }
+      
+  
   
   switch(op) {
     CASE_M(AND);
@@ -216,36 +226,31 @@ static void instr_g2(cpu_instance* cpu) {
   int skip = sense ? 1 : 0;
   
   /* SMA */
-  if(G(2, SMA) && !sense && 
-     cpu->ac & 04000)
-    SKIP;
+  if(G(2, SMA) && !sense)
+    SKIP(cpu->ac & 04000);
   
   /* SPA */
-  if(G(2, SMA) && sense && 
-     ~cpu->ac & 04000)
-    SKIP;
+  if(G(2, SMA) && sense)
+    SKIP(~cpu->ac & 04000);
   
   /* SZA */
-  if(G(2, SZA) && !sense &&
-     cpu->ac == 0)
-    SKIP;
+  if(G(2, SZA) && !sense)
+    SKIP(cpu->ac == 0);
   
   /* SNA */
-  if(G(2, SZA) && sense &&
-     cpu->ac != 0)
-    SKIP;
+  if(G(2, SZA) && sense)
+    SKIP(cpu->ac != 0);
   
   /* SNL */
-  if(G(2, SNL) && !sense &&
-     cpu->l != 0)
-    SKIP;
+  if(G(2, SNL) && !sense)
+    SKIP(cpu->l != 0);
   
   /* SZL */
-  if(G(2, SNL) && sense &&
-     cpu->l == 0)
-    SKIP;
+  if(G(2, SNL) && sense)
+    SKIP(cpu->l == 0);
   
   if(skip)
+    pdp8_inc_pc(cpu);
   
   if(G(2, CLA))
     cpu_set_ac(cpu, 0);
