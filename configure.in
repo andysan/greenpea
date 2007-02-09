@@ -32,13 +32,14 @@ if test x$enable_readline != xno; then
    VL_LIB_READLINE
 fi
 
-CFLAGS="$CFLAGS -Wall -Werror"
+CFLAGS="$CFLAGS $SDL_CFLAGS -Wall -Werror"
+LIBS="$LIBS $SDL_LIBS"
 
-AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile]
-		[pdp12-emu.spec]
-		[libpdp12/Makefile]
-		[libpdp12utils/Makefile]
-		[frontend/Makefile]
-		[frontend/console/Makefile])
+AM_CONFIG_HEADER(config.h)
+AC_CONFIG_FILES([Makefile \
+		pdp12-emu.spec \
+		libpdp12/Makefile \
+		libpdp12utils/Makefile \
+		frontend/Makefile \
+		frontend/console/Makefile])
 AC_OUTPUT

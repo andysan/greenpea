@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include <libpdp12/cpu.h>
 #include <libpdp12utils/rim.h>
