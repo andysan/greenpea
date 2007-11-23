@@ -23,11 +23,11 @@
 #define _LOG_H
 
 typedef enum {
-  LOG_DEBUG = -20,
-  LOG_VERBOSE = -10,
-  LOG_NORMAL = 0,
-  LOG_WARNING = 10,
-  LOG_ERROR = 20
+     LOG_DEBUG = -20,
+     LOG_VERBOSE = -10,
+     LOG_NORMAL = 0,
+     LOG_WARNING = 10,
+     LOG_ERROR = 20
 } LOG_LEVEL;
 
 extern void (*log_sink)(int, const char*, void*);
@@ -38,3 +38,11 @@ void lprintf(LOG_LEVEL level, const char* fmt, ...);
 void log_sink_default(int level, const char* msg, void* data);
 
 #endif
+/* 
+ * Local Variables:
+ * mode: c
+ * c-file-style: "k&r"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */

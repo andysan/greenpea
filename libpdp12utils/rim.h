@@ -24,7 +24,8 @@
 
 #include <stdio.h>
 
-/* Loads a rim-file.
+/*
+ * Loads a rim-file.
  *
  * IN:
  * file - Pointer to a file to be read, mustn't be NULL.
@@ -38,3 +39,11 @@ int load_rim(FILE* file, int offset, int* core, int core_size);
 
 
 #endif
+/* 
+ * Local Variables:
+ * mode: c
+ * c-file-style: "k&r"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */

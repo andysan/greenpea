@@ -29,17 +29,26 @@
 #define MAX_CMD_LENGTH (1024)
 
 char* readln_basic(const char* prompt) {
-  char* cmd;
+     char* cmd;
   
-  if(prompt && *prompt)
-    printf(prompt);
+     if(prompt && *prompt)
+          printf(prompt);
   
-  /* BUG: Long commands are truncated without telling
-     the user. */
-  cmd = malloc(MAX_CMD_LENGTH);
-  if(!cmd)
-    return NULL;
+     /*
+      * BUG: Long commands are truncated without telling the user.
+      */
+     cmd = malloc(MAX_CMD_LENGTH);
+     if(!cmd)
+          return NULL;
   
-  fgets(cmd, MAX_CMD_LENGTH, stdin);
-  return cmd;
+     fgets(cmd, MAX_CMD_LENGTH, stdin);
+     return cmd;
 }
+/* 
+ * Local Variables:
+ * mode: c
+ * c-file-style: "k&r"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */

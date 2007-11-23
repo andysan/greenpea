@@ -49,3 +49,11 @@ extern int read_history ();
 #endif /* HAVE_READLINE_HISTOY */
 
 #endif
+/* 
+ * Local Variables:
+ * mode: c
+ * c-file-style: "k&r"
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ */
