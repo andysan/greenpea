@@ -32,8 +32,7 @@ if test x$enable_readline != xno; then
    VL_LIB_READLINE
 fi
 
-CFLAGS="$CFLAGS $SDL_CFLAGS -Wall -Werror"
-LIBS="$LIBS $SDL_LIBS"
+CFLAGS="-Wall -Werror"
 
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_FILES([Makefile \
