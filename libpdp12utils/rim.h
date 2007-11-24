@@ -39,7 +39,7 @@ int load_rim(FILE* file, int offset, int* core, int core_size);
 
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

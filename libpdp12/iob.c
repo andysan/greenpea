@@ -31,8 +31,8 @@ pdp12_io(cpu_instance *cpu) {
           lprintf(LOG_VERBOSE, "Enabling interrupts.\n");
           cpu_set_flag(cpu, CPU_FLAGS_ION);
           return 1;
-    
-     case IOB_IOF: 
+
+     case IOB_IOF:
           lprintf(LOG_VERBOSE, "Disabling interrupts.\n");
           cpu_clear_flag(cpu, CPU_FLAGS_ION);
           return 1;
@@ -50,33 +50,33 @@ pdp12_io(cpu_instance *cpu) {
           lprintf(LOG_ERROR, "IO instruction not implemented. Halting.\n");
           cpu_clear_flag(cpu, CPU_FLAGS_RUN);
           return 1;
-    
+
      default:
           return 0;
      }
-  
+
 }
 
 void
 iob_io(cpu_instance *cpu) {
      io_device* dev;
      int i;
-  
+
      if (pdp12_io(cpu))
           return;
-  
+
      if (asr33_instr(cpu))
           return;
-  
+
      if (!cpu->devices)
           return;
-  
+
      for (i = 0; cpu->devices[i]; i++) {
           dev = cpu->devices[i];
           if (dev->io(cpu, dev->data))
                return;
      }
-  
+
      lprintf(LOG_ERROR, "IO-instruction (IR=%.4o PC=%.4o) not handled.\n", cpu->ir, cpu->pc);
      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
@@ -85,18 +85,18 @@ void
 iob_reset(cpu_instance *cpu) {
      io_device* dev;
      int i;
-  
+
      asr33_reset(cpu);
-  
+
      if (!cpu->devices)
           return;
-  
+
      for (i = 0; cpu->devices[i]; i++) {
           dev = cpu->devices[i];
           dev->reset(cpu, dev->data);
      }
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

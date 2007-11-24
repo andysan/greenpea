@@ -48,7 +48,7 @@ void iob_io(struct cpu_instance_s *cpu);
 void iob_reset(struct cpu_instance_s *cpu);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

@@ -43,24 +43,24 @@ cpu_create() {
      cpu->ifr = 02;
      cpu->dfr = 03;
      cpu->relays = 0;
-  
+
      /* State */
      cpu->flags = 0;
      cpu->state = CPU_STATE_B;
-  
+
      /* Switches */
      cpu->ls = 0;
      cpu->rs = 0;
      cpu->ifs = 0;
      cpu->ss = 0;
-  
+
      cpu->devices = NULL;
      cpu->callbacks = NULL;
      cpu->vr12 = NULL;
      cpu->asr33 = NULL;
-  
+
      memset(cpu->core, 0, CPU_CORE_SIZE);
-  
+
      return cpu;
 }
 
@@ -205,7 +205,7 @@ cpu_inc_pc(cpu_instance *cpu) {
           linc_inc_pc(cpu);
      }
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

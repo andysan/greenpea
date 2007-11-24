@@ -52,7 +52,7 @@ static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
      args* a = state->input;
-  
+
      switch (key) {
      case 'd':
           log_level = atoi(arg);
@@ -62,27 +62,27 @@ parse_opt (int key, char *arg, struct argp_state *state)
           if(log_level > LOG_VERBOSE)
                log_level = LOG_VERBOSE;
           break;
-    
+
      case 'o':
           a->offset = atoi(arg);
           break;
-    
+
      case ARGP_KEY_ARG:
           if(state->arg_num >= 1)
                argp_usage(state);
-    
+
           a->tape = arg;
           break;
-    
+
      case ARGP_KEY_END:
           if(state->arg_num < 1)
                argp_usage(state);
           break;
-    
+
      default:
           return ARGP_ERR_UNKNOWN;
      }
-  
+
      return 0;
 }
 
@@ -102,26 +102,26 @@ dump(char* tape, int offset) {
      FILE *f = fopen(tape, "r");
      int *core = malloc(sizeof(int) * 4096);
      int i;
-  
+
      memset(core, 0xff, sizeof(int) * 4096);
-  
+
      if (f == NULL) {
           lprintf(LOG_ERROR, "Failed to input open file: %s\n", strerror(errno));
           exit(1);
      }
-  
+
      if (load_rim(f, offset, core, 4096) == -1) {
           lprintf(LOG_ERROR, "Failed to load RIM-file...\n");
           fclose(f);
           free(core);
           exit(1);
      }
-  
+
      for (i = 0; i < 4096; i++) {
           if (core[i] > 0 && core[i] < 07777)
                printf("%.4o: %.4o\n", i, core[i]);
      }
-  
+
      fclose(f);
      free(core);
 }
@@ -129,18 +129,18 @@ dump(char* tape, int offset) {
 int
 main(int argc, char **argp) {
      args a;
-  
+
      a.offset = 0;
      a.tape = NULL;
-  
+
      argp_parse(&a_argp, argc, argp, 0, NULL, &a);
-  
+
      printf("Log level: %i\n", log_level);
      dump(a.tape, a.offset);
-  
+
      return 0;
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

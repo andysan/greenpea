@@ -60,7 +60,7 @@ void vr12_dis(vr12 *vr12, int x, int y, int c);
 void vr12_dsc(vr12 *vr12, int full, int x, int y, int pattern);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

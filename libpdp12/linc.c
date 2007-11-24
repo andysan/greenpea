@@ -117,7 +117,7 @@ static const char *mnemonics_a[] = {NULL,
 
 void
 linc_inc_pc(cpu_instance *cpu) {
-     cpu_set_pc(cpu, 
+     cpu_set_pc(cpu,
                 (cpu->pc & 06000) | ((cpu->pc + 1) & 01777));
 }
 
@@ -125,21 +125,21 @@ linc_inc_pc(cpu_instance *cpu) {
 int
 linc_read(cpu_instance *cpu, int addr) {
      return cpu_read(cpu,
-                     (addr & 01777) | 
+                     (addr & 01777) |
                      (addr & 02000 ? cpu->dfr : cpu->ifr) << 10);
 }
 
 void
 linc_write(cpu_instance *cpu, int addr, int data) {
      cpu_write(cpu,
-               (addr & 01777) | 
+               (addr & 01777) |
                (addr & 02000 ? cpu->dfr : cpu->ifr) << 10,
                data);
 }
 
 /*
  * Linc mode addressing:
- * 
+ *
  * +--------+-------------------------------+
  * | i | b  | Effective address             |
  * +---+----+-------------------------------+
@@ -156,10 +156,10 @@ linc_write(cpu_instance *cpu, int addr, int data) {
 static int
 beta_addr(cpu_instance *cpu, int op, int i, int b) {
      int temp;
-  
+
      if (b == 0) {
           temp = cpu->pc;
-    
+
           if (i)
                return temp;
           else
@@ -179,7 +179,7 @@ beta_addr(cpu_instance *cpu, int op, int i, int b) {
                }
                linc_write(cpu, b, temp);
           }
-    
+
           return temp;
      }
 }
@@ -219,10 +219,10 @@ INSTRUCTION_D(ADD) {
      int op1 = cpu->ac;
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
-  
+
      if (t & 010000)
           t = (t & 07777) + 1;
-  
+
      check_overflow(cpu, op1, op2, t);
      cpu_set_ac(cpu, t);
 }
@@ -235,10 +235,10 @@ INSTRUCTION_B(ADA) {
      int op1 = cpu->ac;
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
-  
+
      if (t & 010000)
           t = (t & 07777) + 1;
-  
+
      check_overflow(cpu, op1, op2, t);
      cpu_set_ac(cpu, t);
 }
@@ -251,10 +251,10 @@ INSTRUCTION_B(ADM) {
      int op1 = cpu->ac;
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
-  
+
      if (t & 010000)
           t = (t & 07777) + 1;
-  
+
      check_overflow(cpu, op1, op2, t);
      cpu_set_ac(cpu, t);
      linc_write(cpu, addr, t);
@@ -264,13 +264,13 @@ INSTRUCTION_B(ADM) {
  * Add to Memory
  */
 INSTRUCTION_B(LAM) {
-     int t = cpu->ac + 
-          cpu->l + 
+     int t = cpu->ac +
+          cpu->l +
           linc_read(cpu, addr);
-  
-     cpu_set_l(cpu, 
+
+     cpu_set_l(cpu,
                (t & 030000) ? 1 : 0);
-  
+
      t &= 07777;
      cpu_set_ac(cpu, t);
      linc_write(cpu, addr, t);
@@ -290,13 +290,13 @@ INSTRUCTION_HF(MUL) {
      int op2 = linc_read(cpu, addr);
      int sign = (op1 & 04000) ^ (op2 & 04000);
      int t;
-  
+
      if (op1 & LINC_OPERAND_NEGATIVE)
           op1 = ~op1 & 07777;
-  
+
      if (op2 & LINC_OPERAND_NEGATIVE)
           op2 = ~op2 & 07777;
-  
+
      t = (op1 & 03777) * (op2 & 03777);
      if (hf) {
           /* Fractional multiplication */
@@ -342,7 +342,7 @@ INSTRUCTION_D(STC) {
  * Store Accumulator
  */
 INSTRUCTION_B(STA) {
-     linc_write(cpu, addr, cpu->ac);	     
+     linc_write(cpu, addr, cpu->ac);
 }
 
 /*
@@ -350,10 +350,10 @@ INSTRUCTION_B(STA) {
  */
 INSTRUCTION_HF(STH) {
      if (hf)
-          linc_write(cpu, addr, 
+          linc_write(cpu, addr,
                      (linc_read(cpu, addr) & 07700) | (cpu->ac & 077));
      else
-          linc_write(cpu, addr, 
+          linc_write(cpu, addr,
                      (linc_read(cpu, addr) & 077) | ((cpu->ac & 077) << 6));
 }
 
@@ -365,21 +365,21 @@ INSTRUCTION_HF(STH) {
 INSTRUCTION_A(ROL) {
      int t = cpu->ac;
      int r;
-  
+
      if (i) {
           /* Rotate AC including LINK */
           r = a % 13;
           if (cpu->l)
                t |= 010000;
           t = (t << r) | (t >> (13 - r));
-    
+
           cpu_set_l(cpu, t & 010000);
      } else {
           /* Rotate AC excluding LINK */
           r = a % 12;
           t = (t << r) | (t >> (12 - r));
      }
-  
+
      cpu_set_ac(cpu, t & 07777);
 }
 
@@ -396,24 +396,24 @@ INSTRUCTION_A(ROR) {
 
      if (i && cpu->l)
           t |= 010000;
-  
+
      if (a < 12)
           m = (m >> a) | (cpu->ac  << (12 - a));
      else
           m = (m >> a) | (cpu->ac  >> (a - 12));
-  
+
      if (i) {
           /* Rotate AC including LINK */
           r = a % 13;
           t = (t >> r) | (t << (13 - r));
-    
+
           cpu_set_l(cpu, t & 010000);
      } else {
           /* Rotate AC excluding LINK */
           r = a % 12;
           t = (t >> r) | (t << (12 - r));
      }
-  
+
      cpu_set_mq(cpu, m);
      cpu_set_ac(cpu, t);
 }
@@ -423,15 +423,15 @@ INSTRUCTION_A(ROR) {
  */
 INSTRUCTION_A(SCR) {
      int t;
-  
+
      t = ((cpu->ac << 12) | cpu->mq) >> a;
-  
+
      if (cpu->ac & 04000)
           t |= ((1 << a) - 1) << (24 - a);
-  
+
      if (i && a >= 1)
           cpu_set_l(cpu, t & 04000);
-  
+
      cpu_set_ac(cpu, t >> 12);
      cpu_set_mq(cpu, t);
 }
@@ -441,7 +441,7 @@ INSTRUCTION_A(SCR) {
  */
 INSTRUCTION_A(SXL) {
      int tst = 1;
-  
+
      switch (a) {
      case 015:
           /* Key Struck */
@@ -450,7 +450,7 @@ INSTRUCTION_A(SXL) {
           else
                tst = 0;
           break;
-    
+
      case 016:
           /* TODO: Implement LINCtape */
           /* Tape Instruction done */
@@ -458,15 +458,15 @@ INSTRUCTION_A(SXL) {
      case 017:
           /* TODO: Implement LINCtape */
           /* Tape Word Complete */
-    
+
      default:
           lprintf(LOG_WARNING, "Unknown or unimplemented level (%o) in SXL.\n", a);
           break;
      }
-  
+
      if (i)
           tst = !tst;
-  
+
      if (tst)
           linc_inc_pc(cpu);
 }
@@ -481,9 +481,9 @@ INSTRUCTION_A(SET) {
      else
           t = linc_read(cpu,
                         linc_read(cpu, cpu->pc));
-  
+
      linc_write(cpu, a, t);
-  
+
      linc_inc_pc(cpu);
 }
 
@@ -492,23 +492,23 @@ INSTRUCTION_A(SET) {
  */
 INSTRUCTION_D(JMP) {
      /* TODO: Check what happens with DJR flag on a JMP 0. */
-  
+
      /* Disable LIF interrupt inhibit if we aren't waiting
         for a new IF.
      */
      if (!(cpu->flags & CPU_FLAGS_LINC_II))
           cpu_clear_flag(cpu, CPU_FLAGS_LINC_II);
-  
+
      if (addr != 0) {
           /* Load new instruction field if requested by LIF. */
           if (cpu->flags & CPU_FLAGS_LIF) {
                cpu_set_ifr(cpu, cpu->ifb);
                cpu_clear_flag(cpu, CPU_FLAGS_LIF);
           }
-    
+
           if (!(cpu->flags & CPU_FLAGS_DJR))
                linc_write(cpu, 0, cpu->pc);
-    
+
           cpu_set_pc(cpu, addr);
      } else {
           cpu_set_pc(cpu, linc_read(cpu, 0) & 01777);
@@ -521,7 +521,7 @@ INSTRUCTION_D(JMP) {
  * Bit Clear
  */
 INSTRUCTION_B(BCL) {
-     cpu_set_ac(cpu, 
+     cpu_set_ac(cpu,
                 cpu->ac & ~linc_read(cpu, addr));
 }
 
@@ -529,7 +529,7 @@ INSTRUCTION_B(BCL) {
  * Bit Set
  */
 INSTRUCTION_B(BSE) {
-     cpu_set_ac(cpu, 
+     cpu_set_ac(cpu,
                 cpu->ac | linc_read(cpu, addr));
 }
 
@@ -537,8 +537,8 @@ INSTRUCTION_B(BSE) {
  * Bit Complement
  */
 INSTRUCTION_B(BCO) {
-     cpu_set_ac(cpu, 
-                cpu->ac ^ linc_read(cpu, addr));  
+     cpu_set_ac(cpu,
+                cpu->ac ^ linc_read(cpu, addr));
 }
 
 /*
@@ -555,10 +555,10 @@ INSTRUCTION_B(SAE) {
  */
 INSTRUCTION_HF(SHD) {
      int op = linc_read(cpu, addr);
-  
+
      if (!hf)
           op = op >> 6;
-  
+
      if ((op & 077) != (cpu->ac & 077))
           linc_inc_pc(cpu);
 }
@@ -571,10 +571,10 @@ INSTRUCTION_HF(SHD) {
  */
 INSTRUCTION_B(SRO) {
      int op = linc_read(cpu, addr);
-  
+
      if (!(op & 01))
           linc_inc_pc(cpu);
-  
+
      linc_write(cpu, addr,
                 (op >> 1) | ((op & 1) << 11));
 }
@@ -585,12 +585,12 @@ INSTRUCTION_B(SRO) {
  */
 INSTRUCTION_A(XSK) {
      int t = linc_read(cpu, a);
-  
+
      if (i) {
           t = ((t + 1) & 01777) | (t & 06000);
           linc_write(cpu, a, t);
      }
-  
+
      if ((t & 01777) == 01777)
           linc_inc_pc(cpu);
 }
@@ -602,7 +602,7 @@ INSTRUCTION_A(SAM) {
      /* TODO: Implement FAST SAMPLE mode. */
      int v = cpu_call_sam(cpu, ia);
      int va = abs(v);
-  
+
      if (v > 0)
           cpu->ac = v > 0777 ? 0777 : va;
      else
@@ -614,16 +614,16 @@ INSTRUCTION_A(SAM) {
  */
 INSTRUCTION_A(DIS) {
      int t;
-  
+
      t = linc_read(cpu, a);
      if (i) {
           t = ((t + 1) & 01777) | (t & 06000);
           linc_write(cpu, a, t);
      }
-  
+
      vr12_dis(cpu->vr12,
-              t & 0777, 
-              (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377), 
+              t & 0777,
+              (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377),
               (t & 04000) ? 1 : 0);
 }
 
@@ -632,9 +632,9 @@ INSTRUCTION_A(DIS) {
  */
 INSTRUCTION_B(DSC) {
      int x;
-  
+
      x = linc_read(cpu, LINC_DSC_ADDR_X);
-  
+
      if (cpu->esf & CPU_ESF_CHAR_SIZE) {
           /* Full char size */
           cpu_set_ac(cpu, (cpu->ac & 07740) | 030);
@@ -646,11 +646,11 @@ INSTRUCTION_B(DSC) {
           linc_write(cpu, LINC_DSC_ADDR_X,
                      ((x + 04) & 01777) | (x & 06000));
      }
-  
+
      /* TODO: Check if coordinates are correctly handled */
      vr12_dsc(cpu->vr12,
               cpu->esf & CPU_ESF_CHAR_SIZE,
-              x & 0777, 
+              x & 0777,
               (cpu->ac & 0400) ? -(~cpu->ac & 0377) : (cpu->ac & 0377),
               linc_read(cpu, addr));
 }
@@ -813,7 +813,7 @@ INSTRUCTION_S(QLZ) {
 }
 
 /*
- * Skip unconditionally 
+ * Skip unconditionally
  */
 INSTRUCTION_S(SKP) {
      return 1;
@@ -851,7 +851,7 @@ INSTRUCTION_A(LSW) {
 static void
 instr_direct(cpu_instance *cpu, int op, int addr) {
      lprintf(LOG_VERBOSE, "%.4o: %s 0%.4o\n", cpu->pc, mnemonics_d[op], addr);
-  
+
      switch (op) {
           CASE_D(ADD);
           CASE_D(STC);
@@ -872,14 +872,14 @@ static void
 instr_alpha(cpu_instance *cpu, int op, int i, int a) {
      int ia = (i << 4) | a;
      int skip;
-  
+
      if (mnemonics_a[op]) {
           if (i)
                lprintf(LOG_VERBOSE, "%.4o: %s I 0%o\n", cpu->pc, mnemonics_a[op], a);
           else
                lprintf(LOG_VERBOSE, "%.4o: %s 0%o\n", cpu->pc, mnemonics_a[op], a);
      }
-  
+
      switch (op) {
           CASE_A(SET);
           CASE_A(SAM);
@@ -894,13 +894,13 @@ instr_alpha(cpu_instance *cpu, int op, int i, int a) {
      case LINC_OP_TAPE:
           if (!(cpu->esf & CPU_ESF_INSTRUCTION_TRAP &&
                 cpu->esf & CPU_ESF_TAPE_TRAP)) {
-      
+
                lprintf(LOG_ERROR, "LINCtape not implemented. Halting.\n");
                cpu_clear_flag(cpu, CPU_FLAGS_RUN);
                return;
           }
           break;
-    
+
      case LINC_OP_EXT1:
           switch (ia) {
                CASE_OPX(1, HLT);
@@ -918,7 +918,7 @@ instr_alpha(cpu_instance *cpu, int op, int i, int a) {
                break;
           }
           break;
-    
+
      case LINC_OP_SKIP:
           /* TODO: Check if this is OK */
           if (!(a & 010)) {
@@ -941,7 +941,7 @@ instr_alpha(cpu_instance *cpu, int op, int i, int a) {
                }
           }
           break;
-    
+
      case LINC_OP_EXT2:
           switch (ia) {
                CASE_OPX(2, IOB);
@@ -951,11 +951,11 @@ instr_alpha(cpu_instance *cpu, int op, int i, int a) {
                break;
           }
           break;
-    
+
      default:
           break;
      }
-  
+
      if (cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
           lprintf(LOG_VERBOSE, "Instruction trap in instr_alpha.\n");
           linc_trap(cpu);
@@ -978,17 +978,17 @@ instr_beta(cpu_instance *cpu, int op, int i, int b) {
       * Or in case of MUL, are we dealing with fractions?
       */
      int hf = addr & LINC_ADDR_RIGHT && !(i && b == 0);
-  
+
      lprintf(LOG_VERBOSE, "%.4o: %s %s 0%o (%.4o)\n",
              cpu->pc,
              mnemonics_b[op],
              i ? "I" : "",
              b,
              addr);
-  
+
      if (b == 0)
           linc_inc_pc(cpu);
-  
+
      switch (op) {
           CASE_B(LDA);
           CASE_B(STA);
@@ -1008,7 +1008,7 @@ instr_beta(cpu_instance *cpu, int op, int i, int b) {
      default:
           break;
      }
-  
+
      if (cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
           lprintf(LOG_VERBOSE, "Instruction trap in instr_beta.\n");
           linc_trap(cpu);
@@ -1021,7 +1021,7 @@ instr_beta(cpu_instance *cpu, int op, int i, int b) {
 void
 linc_do(cpu_instance *cpu) {
      lprintf(LOG_DEBUG, "linc_step pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
-  
+
      switch (cpu->ir & 07000) {
      case LINC_CLASS_ALPHA:
           instr_alpha(cpu,
@@ -1029,14 +1029,14 @@ linc_do(cpu_instance *cpu) {
                       cpu->ir &  00020,
                       cpu->ir &  00017);
           break;
-    
+
      case LINC_CLASS_BETA:
           instr_beta(cpu,
                      (cpu->ir & 00740) >> 5,
                      cpu->ir &  00020,
                      cpu->ir &  00017);
           break;
-    
+
      default:
           /* LINC_CLASS_DIRECT */
           instr_direct(cpu,
@@ -1052,7 +1052,7 @@ linc_step(cpu_instance *cpu) {
      linc_inc_pc(cpu);
      linc_do(cpu);
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

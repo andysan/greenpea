@@ -53,7 +53,7 @@ cmd_exit(int argc, char **argp, void *data) {
 static void
 cmd_state(int argc, char **argp, void *data) {
      cpu_instance *cpu = ((cmd_data *)data)->cpu;
-  
+
      printf("IR: %.4o\tMQ: %.4o\n"
             "PC: %.4o\tAC: %.4o\n"
             "LINK: %o\n"
@@ -66,7 +66,7 @@ cmd_state(int argc, char **argp, void *data) {
             cpu->flags & CPU_FLAGS_FLO ? 1 : 0,
             cpu->flags & CPU_FLAGS_8MODE ? 1 : 0,
             cpu->ss, cpu->ls, cpu->rs);
-	 
+
 }
 
 static void
@@ -75,13 +75,13 @@ cmd_load(int argc, char **argp, void *data) {
      int words;
      FILE *f;
      int offset = 0;
-  
+
      if (argc <= 1 || argc > 3) {
           lprintf(LOG_ERROR,
                   "Invalid number of parameters for 'load'.\n");
           return;
      }
-  
+
      f = fopen(argp[1], "r");
      if (f == NULL) {
           lprintf(LOG_ERROR,
@@ -92,7 +92,7 @@ cmd_load(int argc, char **argp, void *data) {
 
      if (argc >= 3)
           offset = atoi(argp[2]);
-  
+
      words = load_rim(f, offset, cpu->core, CPU_CORE_SIZE);
      if (words == -1) {
           lprintf(LOG_ERROR,
@@ -101,11 +101,11 @@ cmd_load(int argc, char **argp, void *data) {
           fclose(f);
           return;
      }
-  
+
      lprintf(LOG_NORMAL,
              "Loaded %i words from '%s'.\n",
              words, argp[1]);
-  
+
      fclose(f);
 }
 
@@ -120,7 +120,7 @@ cmd_run(int argc, char **argp, void *data) {
      unsigned int i = 0;
      clock_t start = clock();
      clock_t stop;
-  
+
      cpu_set_flag(cpu, CPU_FLAGS_RUN);
      lprintf(LOG_VERBOSE, "Running...\n");
      while (cpu->flags & CPU_FLAGS_RUN) {
@@ -134,12 +134,12 @@ cmd_run(int argc, char **argp, void *data) {
           }
      }
      stop = clock();
-  
+
      lprintf(LOG_NORMAL, "Halted at %.4o.\n", cpu->pc);
      lprintf(LOG_NORMAL,
              "Did %i instructions in %f seconds (%f i/s)\n",
-             i, 
-             ((double)(stop - start))/((double)CLOCKS_PER_SEC), 
+             i,
+             ((double)(stop - start))/((double)CLOCKS_PER_SEC),
              ((double)i * (double)CLOCKS_PER_SEC)/((double)(stop - start))
 	  );
 }
@@ -150,12 +150,12 @@ cmd_set(int argc, char **argp, void *data) {
      char *reg = argp[1];
      int value;
      int addr;
-  
+
      if (sscanf(argp[2], "%i", &value) != 1) {
           lprintf(LOG_ERROR, "Invalid value specified!\n");
           return;
      }
-  
+
      if (sscanf(argp[1], "%i", &addr) == 1) {
           if (addr >= 0 && addr < CPU_CORE_SIZE)
                cpu->core[addr] = value;
@@ -188,23 +188,23 @@ cmd_dump(int argc, char **argp, void *data) {
      cpu_instance *cpu = ((cmd_data *)data)->cpu;
      int i;
      int start, end;
-  
+
      if (sscanf(argp[1], "%i", &start) != 1 ||
          start >= CPU_CORE_SIZE) {
           lprintf(LOG_ERROR, "Illegal start address received.\n");
           return;
      }
 
-     if (sscanf(argp[2], "%i", &end) != 1 || 
+     if (sscanf(argp[2], "%i", &end) != 1 ||
          end >= CPU_CORE_SIZE || end < start) {
           lprintf(LOG_ERROR, "Illegal end address received.\n");
           return;
      }
-  
+
      for (i = start; i <= end; i++) {
           if (i % 010 == 0)
                printf("\n%.4o: ", i);
-    
+
           printf(" %.4o", cpu->core[i]);
      }
      printf("\n");
@@ -250,10 +250,10 @@ shell_script(cpu_instance *cpu, const char *name) {
      FILE *script;
      char *cmd = malloc(MAX_SCRIPT_LINE_LENGTH);
      cmd_data cd;
-  
+
      cd.cpu = cpu;
      cd.end = 0;
-  
+
      script = fopen(name, "r");
      if (script) {
           do {
@@ -270,7 +270,7 @@ shell_script(cpu_instance *cpu, const char *name) {
           lprintf(LOG_ERROR, "The script '%s' can't be opened: %s\n",
                   name, strerror(errno));
      }
-  
+
      free(cmd);
 }
 
@@ -278,7 +278,7 @@ void
 shell_start(cpu_instance *cpu) {
      char *c;
      cmd_data cd;
-  
+
      cd.cpu = cpu;
      cd.end = 0;
 
@@ -298,9 +298,9 @@ shell_start(cpu_instance *cpu) {
      } while (!cd.end && c);
      if (!c)
           printf("\n");
-  
+
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

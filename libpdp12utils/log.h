@@ -38,7 +38,7 @@ void lprintf(LOG_LEVEL level, const char *fmt, ...);
 void log_sink_default(int level, const char *msg, void *data);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

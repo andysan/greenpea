@@ -31,10 +31,10 @@ typedef struct asr33_s {
       */
      void (*print)(unsigned char c, void *data);
      char (*read)(void *data);
-  
+
      int keyboard_flag : 1;
      int printer_flag : 1;
-  
+
      void* data;
 } asr33;
 
@@ -42,7 +42,7 @@ int asr33_instr(cpu_instance *cpu);
 void asr33_reset(cpu_instance *cpu);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

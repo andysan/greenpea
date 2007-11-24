@@ -127,7 +127,7 @@ int linc_read(cpu_instance *cpu, int addr);
 void linc_write(cpu_instance *cpu, int addr, int data);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

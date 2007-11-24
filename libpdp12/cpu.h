@@ -95,7 +95,7 @@ typedef struct cpu_callbacks_s {
      void (*update_relays)(cpu_instance *cpu, void *data);
      /* Returns a value between -0777 and 0777 */
      int (*sample_ad)(cpu_instance *cpu, void *data, int n);
-  
+
      void *data;
 } cpu_callbacks;
 
@@ -115,27 +115,27 @@ struct cpu_instance_s {
      CPU_REG5  ifb;    /* Instruction Field Buffer */
      CPU_REG5  dfr;    /* Data Field Register */
      CPU_REG12 sfr;    /* Save Field Register */
-  
+
      CPU_REG6  relays; /* Register holding relay status */
-  
+
      cpu_flags flags;
      cpu_states state ;
-  
+
      cpu_esf esf;      /* LINC special functions register */
-  
+
      CPU_REG12 ls;     /* Left Switches */
      CPU_REG12 rs;     /* Right Switches */
      CPU_REG3  ifs;    /* Instruction Field Switches */
      CPU_REG6   ss;    /* Sense Switches */
-  
+
      cpu_callbacks* callbacks;
      vr12 *vr12;
      asr33 *asr33;
-  
+
      /* NULL terminated list of devices attached to the IO bus.
         NULL if no devices attached. */
      struct io_device_s **devices;
-  
+
      int core[CPU_CORE_SIZE];
 };
 
@@ -171,7 +171,7 @@ int cpu_call_ext_level(cpu_instance *cpu, int level);
 
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

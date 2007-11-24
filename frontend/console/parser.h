@@ -41,7 +41,7 @@ typedef struct parser_command {
 void parser_exec(const parser_command *cmds, void *data, const char *c);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

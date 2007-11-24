@@ -50,11 +50,11 @@ parse(const char* text) {
      int len = strlen(text);
      char* out = malloc(len+1);
      int i;
-  
+
      parser_mode mode = PARSER_NORMAL;
-  
+
      out[len] = '\0';
-  
+
      for (i = 0; i < len; i++) {
           if (mode & PARSER_ESCAPE) {
                if (text[i] == ' ' ||
@@ -69,7 +69,7 @@ parse(const char* text) {
                     mode |= PARSER_ESCAPE;
                else if (text[i] == '\"')
                     mode ^= PARSER_QUOTE;
-               else if (!(mode & PARSER_QUOTE) && 
+               else if (!(mode & PARSER_QUOTE) &&
                        isspace(text[i])) {
                     out[i] = '\0';
                } else {
@@ -77,7 +77,7 @@ parse(const char* text) {
                }
           }
      }
-  
+
      return out;
 }
 
@@ -85,7 +85,7 @@ parse(const char* text) {
  * Function that parses and splits text and creates an
  * array with with string pointers in *out. Returns
  * the number of tokens.
- * 
+ *
  * The caller is responsible for freeing up the memory
  * in (*out)[n].
  */
@@ -98,12 +98,12 @@ split(const char *text, char ***out) {
      char* parsed = parse(text);
      int len = strlen(text);
      int t_len;
-  
+
      for (i = 0; i < len; i++) {
           t_len = strlen(&parsed[i]);
           if (t_len == 0)
                continue;
-    
+
           if (t == NULL) {
                tokens = malloc(sizeof(token_list));
                t = tokens;
@@ -111,14 +111,14 @@ split(const char *text, char ***out) {
                t->n = malloc(sizeof(token_list));
                t = t->n;
           }
-    
+
           t->n = NULL;
           t->l = t_len;
           t->t = &parsed[i];
           i += t->l;
           num_tokens++;
      }
-  
+
      *out = malloc(sizeof(char*) * num_tokens);
      t = tokens;
      for (i = 0; t; i++) {
@@ -126,9 +126,9 @@ split(const char *text, char ***out) {
           memcpy((*out)[i], t->t, t->l + 1);
           t = t->n;
      }
-  
+
      free(parsed);
-  
+
      return num_tokens;
 }
 
@@ -137,7 +137,7 @@ free_args(int argc, char **argp) {
      int i;
      for (i = 0; i < argc; i++)
           free(argp[i]);
-  
+
      free(argp);
 }
 
@@ -159,7 +159,7 @@ print_help(const parser_command *cmds, const char *cmd) {
                     else
                          lprintf(LOG_NORMAL,
                                  "No help availible for '%s'.\n", cmd);
-	
+
                     return;
                }
           }
@@ -172,21 +172,21 @@ parser_exec(const parser_command *cmds, void *data, const char *c) {
      int argc;
      char **argp;
      int i;
-  
+
      argc = split(c, &argp);
      if(argc == 0)
           return;
-  
+
      if(!strcmp(argp[0], "help")) {
           if (argc >= 2)
                print_help(cmds, argp[1]);
           else
                print_help(cmds, NULL);
-    
+
           free_args(argc, argp);
           return;
      }
-  
+
      for (i = 0; cmds[i].cmd_name; i++) {
           if (!strcmp(cmds[i].cmd_name, argp[0])) {
                if (cmds[i].num_param == -1 ||
@@ -196,17 +196,17 @@ parser_exec(const parser_command *cmds, void *data, const char *c) {
                     lprintf(LOG_ERROR,
                             "Invalid number of parameters for '%s'\n",
                             cmds[i].cmd_name);
-      
+
                free_args(argc, argp);
                return;
           }
      }
-  
+
      lprintf(LOG_ERROR, "Unknown command '%s'.\n", argp[0]);
-  
+
      free_args(argc, argp);
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

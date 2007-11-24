@@ -38,17 +38,17 @@ void
 lprintf(LOG_LEVEL level, const char *fmt, ...) {
      if (level < log_level)
           return;
-  
+
      va_list ap;
      char *msg;
-  
+
      va_start(ap, fmt);
-  
+
      if (vasprintf(&msg, fmt, ap) >= 0) {
           log_sink(level, msg, log_data);
           free(msg);
      }
-  
+
      va_end(ap);
 }
 
@@ -59,7 +59,7 @@ log_sink_default(int level, const char *msg, void *data) {
      else
           fprintf(stdout, msg);
 }
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

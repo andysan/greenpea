@@ -27,7 +27,7 @@ void shell_script(cpu_instance *cpu, const char *name);
 void shell_start(cpu_instance *cpu);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"

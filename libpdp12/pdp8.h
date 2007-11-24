@@ -74,7 +74,7 @@ int pdp8_read_i(cpu_instance *cpu, int addr);
 void pdp8_write_i(cpu_instance *cpu, int addr, int data);
 
 #endif
-/* 
+/*
  * Local Variables:
  * mode: c
  * c-file-style: "k&r"
