@@ -91,12 +91,12 @@ typedef enum {
 } cpu_esf;
 
 typedef struct cpu_callbacks_s {
-     int (*get_level)(cpu_instance* cpu, void* data, int level);
-     void (*update_relays)(cpu_instance* cpu, void* data);
+     int (*get_level)(cpu_instance *cpu, void *data, int level);
+     void (*update_relays)(cpu_instance *cpu, void *data);
      /* Returns a value between -0777 and 0777 */
-     int (*sample_ad)(cpu_instance* cpu, void* data, int n);
+     int (*sample_ad)(cpu_instance *cpu, void *data, int n);
   
-     void* data;
+     void *data;
 } cpu_callbacks;
 
 struct cpu_instance_s {
@@ -129,45 +129,45 @@ struct cpu_instance_s {
      CPU_REG6   ss;    /* Sense Switches */
   
      cpu_callbacks* callbacks;
-     vr12* vr12;
-     asr33* asr33;
+     vr12 *vr12;
+     asr33 *asr33;
   
      /* NULL terminated list of devices attached to the IO bus.
         NULL if no devices attached. */
-     struct io_device_s** devices;
+     struct io_device_s **devices;
   
      int core[CPU_CORE_SIZE];
 };
 
 cpu_instance* cpu_create();
-void cpu_destroy(cpu_instance* cpu);
+void cpu_destroy(cpu_instance *cpu);
 
-void cpu_io_preset(cpu_instance* cpu);
+void cpu_io_preset(cpu_instance *cpu);
 
-void cpu_step(cpu_instance* cpu);
+void cpu_step(cpu_instance *cpu);
 
-void cpu_set_ac(cpu_instance* cpu, int ac);
-void cpu_set_pc(cpu_instance* cpu, int pc);
-void cpu_set_mq(cpu_instance* cpu, int mq);
-void cpu_set_l(cpu_instance* cpu, int l);
-void cpu_set_state(cpu_instance* cpu, cpu_states s);
-void cpu_set_flag(cpu_instance* cpu, cpu_flags s);
-void cpu_set_relays(cpu_instance* cpu, int r);
-void cpu_set_ifr(cpu_instance* cpu, int n);
-void cpu_set_dfr(cpu_instance* cpu, int n);
-void cpu_set_esf(cpu_instance* cpu, int n);
+void cpu_set_ac(cpu_instance *cpu, int ac);
+void cpu_set_pc(cpu_instance *cpu, int pc);
+void cpu_set_mq(cpu_instance *cpu, int mq);
+void cpu_set_l(cpu_instance *cpu, int l);
+void cpu_set_state(cpu_instance *cpu, cpu_states s);
+void cpu_set_flag(cpu_instance *cpu, cpu_flags s);
+void cpu_set_relays(cpu_instance *cpu, int r);
+void cpu_set_ifr(cpu_instance *cpu, int n);
+void cpu_set_dfr(cpu_instance *cpu, int n);
+void cpu_set_esf(cpu_instance *cpu, int n);
 
-void cpu_clear_state(cpu_instance* cpu, cpu_states s);
-void cpu_clear_flag(cpu_instance* cpu, cpu_flags s);
+void cpu_clear_state(cpu_instance *cpu, cpu_states s);
+void cpu_clear_flag(cpu_instance *cpu, cpu_flags s);
 
-void cpu_write(cpu_instance* cpu, int ma, int mb);
+void cpu_write(cpu_instance *cpu, int ma, int mb);
 
-int cpu_read(cpu_instance* cpu, int ma);
+int cpu_read(cpu_instance *cpu, int ma);
 
-void cpu_inc_pc(cpu_instance* cpu);
+void cpu_inc_pc(cpu_instance *cpu);
 
-int cpu_call_sam(cpu_instance* cpu, int n);
-int cpu_call_ext_level(cpu_instance* cpu, int level);
+int cpu_call_sam(cpu_instance *cpu, int n);
+int cpu_call_ext_level(cpu_instance *cpu, int level);
 
 
 #endif

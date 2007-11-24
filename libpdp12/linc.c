@@ -26,20 +26,20 @@
 #include "linc.h"
 
 #define INSTRUCTION_D(mn) \
-  static void instr_ ## mn(cpu_instance* cpu, int addr)
+  static void instr_ ## mn(cpu_instance *cpu, int addr)
 
 #define INSTRUCTION_A(mn) \
-  static void instr_ ## mn(cpu_instance* cpu, int i, int a, int ia)
+  static void instr_ ## mn(cpu_instance *cpu, int i, int a, int ia)
 
 #define INSTRUCTION_S(mn) \
-  static int instr_ ## mn(cpu_instance* cpu, int a)
+  static int instr_ ## mn(cpu_instance *cpu, int a)
 
 
 #define INSTRUCTION_B(mn) \
-  static void instr_ ## mn (cpu_instance* cpu, int addr)
+  static void instr_ ## mn (cpu_instance *cpu, int addr)
 
 #define INSTRUCTION_HF(mn) \
-  static void instr_ ## mn (cpu_instance* cpu, int hf, int addr)
+  static void instr_ ## mn (cpu_instance *cpu, int hf, int addr)
 
 #define CASE_D(mn)	      \
   case LINC_OP_ ## mn:	      \
@@ -61,7 +61,7 @@
   case LINC_OPXS_ ## mn:				       \
     lprintf(LOG_VERBOSE, "%.4o: " #mn " I: %o\n", cpu->pc, i); \
     skip = instr_ ## mn (cpu, a);			       \
-    if((i && !skip) || (!i && skip))                           \
+    if ((i && !skip) || (!i && skip))                           \
       linc_inc_pc(cpu);                                        \
     return;
 
@@ -76,12 +76,12 @@
     return;
 
 
-static const char* mnemonics_d[] = {"INVALID",
+static const char *mnemonics_d[] = {"INVALID",
 				    "ADD",
 				    "STC",
 				    "JMP"};
 
-static const char* mnemonics_b[] = {"LDA",
+static const char *mnemonics_b[] = {"LDA",
 				    "STA",
 				    "ADA",
 				    "ADM",
@@ -98,7 +98,7 @@ static const char* mnemonics_b[] = {"LDA",
 				    "---",
 				    "DSC"};
 
-static const char* mnemonics_a[] = {NULL,
+static const char *mnemonics_a[] = {NULL,
 				    "SET",
 				    "SAM",
 				    "DIS",
@@ -115,19 +115,22 @@ static const char* mnemonics_a[] = {NULL,
 				    NULL,
 				    "TRAP3"};
 
-void linc_inc_pc(cpu_instance* cpu) {
+void
+linc_inc_pc(cpu_instance *cpu) {
      cpu_set_pc(cpu, 
                 (cpu->pc & 06000) | ((cpu->pc + 1) & 01777));
 }
 
 
-int linc_read(cpu_instance* cpu, int addr) {
+int
+linc_read(cpu_instance *cpu, int addr) {
      return cpu_read(cpu,
                      (addr & 01777) | 
                      (addr & 02000 ? cpu->dfr : cpu->ifr) << 10);
 }
 
-void linc_write(cpu_instance* cpu, int addr, int data) {
+void
+linc_write(cpu_instance *cpu, int addr, int data) {
      cpu_write(cpu,
                (addr & 01777) | 
                (addr & 02000 ? cpu->dfr : cpu->ifr) << 10,
@@ -150,25 +153,26 @@ void linc_write(cpu_instance* cpu, int addr, int data) {
  * Note: If beta == 0, skip next instruction.
  *
  */
-static int beta_addr(cpu_instance* cpu, int op, int i, int b) {
+static int
+beta_addr(cpu_instance *cpu, int op, int i, int b) {
      int temp;
   
-     if(b == 0) {
+     if (b == 0) {
           temp = cpu->pc;
     
-          if(i)
+          if (i)
                return temp;
           else
                return linc_read(cpu, temp);
      } else {
           temp = linc_read(cpu, b);
-          if(i) {
-               if(op == LINC_OP_LDH ||
-                  op == LINC_OP_STH ||
-                  op == LINC_OP_SHD) {
+          if (i) {
+               if (op == LINC_OP_LDH ||
+                   op == LINC_OP_STH ||
+                   op == LINC_OP_SHD) {
                     /* Bloody half word instructions! They're a bloody mess! */
                     temp += LINC_ADDR_RIGHT;
-                    if(temp & 010000)
+                    if (temp & 010000)
                          temp = ((temp + 1) & 01777) | (temp & 06000);
                } else {
                     temp = ((temp + 1) & 01777) | (temp & 06000);
@@ -184,19 +188,22 @@ static int beta_addr(cpu_instance* cpu, int op, int i, int b) {
  * Sign is stored in the highest bit, if op1 && op2 have the same sign
  * and the results have a different sign, then overflow has occured.
  */
-static void check_overflow(cpu_instance* cpu, int op1, int op2, int res) {
-     if((op1 & 04000) == (op2 & 04000) &&
-        (res & 04000) != (op1 & 04000))
+static void
+check_overflow(cpu_instance *cpu, int op1, int op2, int res) {
+     if ((op1 & 04000) == (op2 & 04000) &&
+         (res & 04000) != (op1 & 04000))
           cpu_set_flag(cpu, CPU_FLAGS_FLO);
      else
           cpu_clear_flag(cpu, CPU_FLAGS_FLO);
 }
 
-static void linc_set_sfr(cpu_instance* cpu) {
+static void
+linc_set_sfr(cpu_instance *cpu) {
      cpu->sfr = (cpu->ifr << 5) | cpu->dfr;
 }
 
-static void linc_trap(cpu_instance* cpu) {
+static void
+linc_trap(cpu_instance *cpu) {
      linc_set_sfr(cpu);
      cpu_set_ifr(cpu, 0);
      linc_write(cpu, LINC_TRAP_SAVE_PC, cpu->pc);
@@ -213,7 +220,7 @@ INSTRUCTION_D(ADD) {
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
   
-     if(t & 010000)
+     if (t & 010000)
           t = (t & 07777) + 1;
   
      check_overflow(cpu, op1, op2, t);
@@ -229,7 +236,7 @@ INSTRUCTION_B(ADA) {
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
   
-     if(t & 010000)
+     if (t & 010000)
           t = (t & 07777) + 1;
   
      check_overflow(cpu, op1, op2, t);
@@ -245,7 +252,7 @@ INSTRUCTION_B(ADM) {
      int op2 = linc_read(cpu, addr);
      int t = op1 + op2;
   
-     if(t & 010000)
+     if (t & 010000)
           t = (t & 07777) + 1;
   
      check_overflow(cpu, op1, op2, t);
@@ -284,14 +291,14 @@ INSTRUCTION_HF(MUL) {
      int sign = (op1 & 04000) ^ (op2 & 04000);
      int t;
   
-     if(op1 & LINC_OPERAND_NEGATIVE)
+     if (op1 & LINC_OPERAND_NEGATIVE)
           op1 = ~op1 & 07777;
   
-     if(op2 & LINC_OPERAND_NEGATIVE)
+     if (op2 & LINC_OPERAND_NEGATIVE)
           op2 = ~op2 & 07777;
   
      t = (op1 & 03777) * (op2 & 03777);
-     if(hf) {
+     if (hf) {
           /* Fractional multiplication */
           cpu_set_ac(cpu,
                      (((sign ? ~t : t) >> 11) & 03777) | sign);
@@ -315,7 +322,7 @@ INSTRUCTION_B(LDA) {
  * Load Accumulator (half)
  */
 INSTRUCTION_HF(LDH) {
-     if(hf)
+     if (hf)
           cpu_set_ac(cpu, linc_read(cpu, addr) & 077);
      else
           cpu_set_ac(cpu, linc_read(cpu, addr) >> 6);
@@ -342,7 +349,7 @@ INSTRUCTION_B(STA) {
  * Store Accumulator (half)
  */
 INSTRUCTION_HF(STH) {
-     if(hf)
+     if (hf)
           linc_write(cpu, addr, 
                      (linc_read(cpu, addr) & 07700) | (cpu->ac & 077));
      else
@@ -359,10 +366,10 @@ INSTRUCTION_A(ROL) {
      int t = cpu->ac;
      int r;
   
-     if(i) {
+     if (i) {
           /* Rotate AC including LINK */
           r = a % 13;
-          if(cpu->l)
+          if (cpu->l)
                t |= 010000;
           t = (t << r) | (t >> (13 - r));
     
@@ -387,15 +394,15 @@ INSTRUCTION_A(ROR) {
      int m = cpu->mq;
      int r;
 
-     if(i && cpu->l)
+     if (i && cpu->l)
           t |= 010000;
   
-     if(a < 12)
+     if (a < 12)
           m = (m >> a) | (cpu->ac  << (12 - a));
      else
           m = (m >> a) | (cpu->ac  >> (a - 12));
   
-     if(i) {
+     if (i) {
           /* Rotate AC including LINK */
           r = a % 13;
           t = (t >> r) | (t << (13 - r));
@@ -419,10 +426,10 @@ INSTRUCTION_A(SCR) {
   
      t = ((cpu->ac << 12) | cpu->mq) >> a;
   
-     if(cpu->ac & 04000)
+     if (cpu->ac & 04000)
           t |= ((1 << a) - 1) << (24 - a);
   
-     if(i && a >= 1)
+     if (i && a >= 1)
           cpu_set_l(cpu, t & 04000);
   
      cpu_set_ac(cpu, t >> 12);
@@ -435,10 +442,10 @@ INSTRUCTION_A(SCR) {
 INSTRUCTION_A(SXL) {
      int tst = 1;
   
-     switch(a) {
+     switch (a) {
      case 015:
           /* Key Struck */
-          if(cpu->asr33)
+          if (cpu->asr33)
                tst = cpu->asr33->keyboard_flag;
           else
                tst = 0;
@@ -457,10 +464,10 @@ INSTRUCTION_A(SXL) {
           break;
      }
   
-     if(i)
+     if (i)
           tst = !tst;
   
-     if(tst)
+     if (tst)
           linc_inc_pc(cpu);
 }
 
@@ -469,7 +476,7 @@ INSTRUCTION_A(SXL) {
  */
 INSTRUCTION_A(SET) {
      int t;
-     if(i)
+     if (i)
           t = linc_read(cpu, cpu->pc);
      else
           t = linc_read(cpu,
@@ -489,17 +496,17 @@ INSTRUCTION_D(JMP) {
      /* Disable LIF interrupt inhibit if we aren't waiting
         for a new IF.
      */
-     if(!(cpu->flags & CPU_FLAGS_LINC_II))
+     if (!(cpu->flags & CPU_FLAGS_LINC_II))
           cpu_clear_flag(cpu, CPU_FLAGS_LINC_II);
   
-     if(addr != 0) {
+     if (addr != 0) {
           /* Load new instruction field if requested by LIF. */
-          if(cpu->flags & CPU_FLAGS_LIF) {
+          if (cpu->flags & CPU_FLAGS_LIF) {
                cpu_set_ifr(cpu, cpu->ifb);
                cpu_clear_flag(cpu, CPU_FLAGS_LIF);
           }
     
-          if(!(cpu->flags & CPU_FLAGS_DJR))
+          if (!(cpu->flags & CPU_FLAGS_DJR))
                linc_write(cpu, 0, cpu->pc);
     
           cpu_set_pc(cpu, addr);
@@ -538,7 +545,7 @@ INSTRUCTION_B(BCO) {
  * Skip on AC == Y
  */
 INSTRUCTION_B(SAE) {
-     if(cpu->ac == linc_read(cpu, addr))
+     if (cpu->ac == linc_read(cpu, addr))
           linc_inc_pc(cpu);
 }
 
@@ -549,10 +556,10 @@ INSTRUCTION_B(SAE) {
 INSTRUCTION_HF(SHD) {
      int op = linc_read(cpu, addr);
   
-     if(!hf)
+     if (!hf)
           op = op >> 6;
   
-     if((op & 077) != (cpu->ac & 077))
+     if ((op & 077) != (cpu->ac & 077))
           linc_inc_pc(cpu);
 }
 
@@ -565,7 +572,7 @@ INSTRUCTION_HF(SHD) {
 INSTRUCTION_B(SRO) {
      int op = linc_read(cpu, addr);
   
-     if(!(op & 01))
+     if (!(op & 01))
           linc_inc_pc(cpu);
   
      linc_write(cpu, addr,
@@ -579,12 +586,12 @@ INSTRUCTION_B(SRO) {
 INSTRUCTION_A(XSK) {
      int t = linc_read(cpu, a);
   
-     if(i) {
+     if (i) {
           t = ((t + 1) & 01777) | (t & 06000);
           linc_write(cpu, a, t);
      }
   
-     if((t & 01777) == 01777)
+     if ((t & 01777) == 01777)
           linc_inc_pc(cpu);
 }
 
@@ -596,7 +603,7 @@ INSTRUCTION_A(SAM) {
      int v = cpu_call_sam(cpu, ia);
      int va = abs(v);
   
-     if(v > 0)
+     if (v > 0)
           cpu->ac = v > 0777 ? 0777 : va;
      else
           cpu->ac = 07000 | ~(v < 0777 ? 0777 : va);
@@ -609,7 +616,7 @@ INSTRUCTION_A(DIS) {
      int t;
   
      t = linc_read(cpu, a);
-     if(i) {
+     if (i) {
           t = ((t + 1) & 01777) | (t & 06000);
           linc_write(cpu, a, t);
      }
@@ -628,7 +635,7 @@ INSTRUCTION_B(DSC) {
   
      x = linc_read(cpu, LINC_DSC_ADDR_X);
   
-     if(cpu->esf & CPU_ESF_CHAR_SIZE) {
+     if (cpu->esf & CPU_ESF_CHAR_SIZE) {
           /* Full char size */
           cpu_set_ac(cpu, (cpu->ac & 07740) | 030);
           linc_write(cpu, LINC_DSC_ADDR_X,
@@ -688,7 +695,7 @@ INSTRUCTION_A(PDP) {
 INSTRUCTION_A(ESF) {
      int esf = (cpu->ac >> 4);
      cpu_set_esf(cpu, esf);
-     if(esf & CPU_ESF_IO_PRESET)
+     if (esf & CPU_ESF_IO_PRESET)
           cpu_io_preset(cpu);
 }
 
@@ -841,10 +848,11 @@ INSTRUCTION_A(LSW) {
  * | OP  |       ADDRESS         |
  * +-----+-----------------------+
  */
-static void instr_direct(cpu_instance* cpu, int op, int addr) {
+static void
+instr_direct(cpu_instance *cpu, int op, int addr) {
      lprintf(LOG_VERBOSE, "%.4o: %s 0%.4o\n", cpu->pc, mnemonics_d[op], addr);
   
-     switch(op) {
+     switch (op) {
           CASE_D(ADD);
           CASE_D(STC);
           CASE_D(JMP);
@@ -860,18 +868,19 @@ static void instr_direct(cpu_instance* cpu, int op, int addr) {
  * | 0 0 0 | OP-code | I |  ALPHA    |
  * +-------+---------+---+-----------+
  */
-static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
+static void
+instr_alpha(cpu_instance *cpu, int op, int i, int a) {
      int ia = (i << 4) | a;
      int skip;
   
-     if(mnemonics_a[op]) {
-          if(i)
+     if (mnemonics_a[op]) {
+          if (i)
                lprintf(LOG_VERBOSE, "%.4o: %s I 0%o\n", cpu->pc, mnemonics_a[op], a);
           else
                lprintf(LOG_VERBOSE, "%.4o: %s 0%o\n", cpu->pc, mnemonics_a[op], a);
      }
   
-     switch(op) {
+     switch (op) {
           CASE_A(SET);
           CASE_A(SAM);
           CASE_A(DIS);
@@ -883,8 +892,8 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
           CASE_A(LIF);
           CASE_A(LDF);
      case LINC_OP_TAPE:
-          if(!(cpu->esf & CPU_ESF_INSTRUCTION_TRAP &&
-               cpu->esf & CPU_ESF_TAPE_TRAP)) {
+          if (!(cpu->esf & CPU_ESF_INSTRUCTION_TRAP &&
+                cpu->esf & CPU_ESF_TAPE_TRAP)) {
       
                lprintf(LOG_ERROR, "LINCtape not implemented. Halting.\n");
                cpu_clear_flag(cpu, CPU_FLAGS_RUN);
@@ -893,7 +902,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
           break;
     
      case LINC_OP_EXT1:
-          switch(ia) {
+          switch (ia) {
                CASE_OPX(1, HLT);
                CASE_OPX(1, PDP);
                CASE_OPX(1, ESF);
@@ -912,14 +921,14 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
     
      case LINC_OP_SKIP:
           /* TODO: Check if this is OK */
-          if(!(a & 010)) {
+          if (!(a & 010)) {
                lprintf(LOG_VERBOSE, "%.4o: SNS I: %o\n", cpu->pc, i);
                skip = instr_SNS(cpu, a);
-               if((i && !skip) || (!i && skip))
+               if ((i && !skip) || (!i && skip))
                     linc_inc_pc(cpu);
                return;
           } else {
-               switch(a) {
+               switch (a) {
                     CASE_SKIP(AZE);
                     CASE_SKIP(APO);
                     CASE_SKIP(LZE);
@@ -934,7 +943,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
           break;
     
      case LINC_OP_EXT2:
-          switch(ia) {
+          switch (ia) {
                CASE_OPX(2, IOB);
                CASE_OPX(2, RSW);
                CASE_OPX(2, LSW);
@@ -947,7 +956,7 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
           break;
      }
   
-     if(cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
+     if (cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
           lprintf(LOG_VERBOSE, "Instruction trap in instr_alpha.\n");
           linc_trap(cpu);
      } else {
@@ -962,7 +971,8 @@ static void instr_alpha(cpu_instance* cpu, int op, int i, int a) {
  * | 0 0 1 | OP-code | I |   BETA    |
  * +-------+---------+---+-----------+
  */
-static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
+static void
+instr_beta(cpu_instance *cpu, int op, int i, int b) {
      int addr = beta_addr(cpu, op, i, b);
      /* Should we use the right half?
       * Or in case of MUL, are we dealing with fractions?
@@ -976,10 +986,10 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
              b,
              addr);
   
-     if(b == 0)
+     if (b == 0)
           linc_inc_pc(cpu);
   
-     switch(op) {
+     switch (op) {
           CASE_B(LDA);
           CASE_B(STA);
           CASE_B(ADA);
@@ -999,7 +1009,7 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
           break;
      }
   
-     if(cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
+     if (cpu->esf & CPU_ESF_INSTRUCTION_TRAP) {
           lprintf(LOG_VERBOSE, "Instruction trap in instr_beta.\n");
           linc_trap(cpu);
      } else {
@@ -1008,10 +1018,11 @@ static void instr_beta(cpu_instance* cpu, int op, int i, int b) {
      }
 }
 
-void linc_do(cpu_instance* cpu) {
+void
+linc_do(cpu_instance *cpu) {
      lprintf(LOG_DEBUG, "linc_step pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
   
-     switch(cpu->ir & 07000) {
+     switch (cpu->ir & 07000) {
      case LINC_CLASS_ALPHA:
           instr_alpha(cpu,
                       (cpu->ir & 00740) >> 5,
@@ -1035,7 +1046,8 @@ void linc_do(cpu_instance* cpu) {
      }
 }
 
-void linc_step(cpu_instance* cpu) {
+void
+linc_step(cpu_instance *cpu) {
      cpu->ir = linc_read(cpu, cpu->pc & 01777);
      linc_inc_pc(cpu);
      linc_do(cpu);

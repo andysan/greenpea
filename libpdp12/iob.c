@@ -24,8 +24,9 @@
 #include "iob.h"
 #include "asr33.h"
 
-static int pdp12_io(cpu_instance* cpu) {
-     switch(cpu->ir) {
+static int
+pdp12_io(cpu_instance *cpu) {
+     switch (cpu->ir) {
      case IOB_ION:
           lprintf(LOG_VERBOSE, "Enabling interrupts.\n");
           cpu_set_flag(cpu, CPU_FLAGS_ION);
@@ -56,22 +57,23 @@ static int pdp12_io(cpu_instance* cpu) {
   
 }
 
-void iob_io(cpu_instance* cpu) {
+void
+iob_io(cpu_instance *cpu) {
      io_device* dev;
      int i;
   
-     if(pdp12_io(cpu))
+     if (pdp12_io(cpu))
           return;
   
-     if(asr33_instr(cpu))
+     if (asr33_instr(cpu))
           return;
   
-     if(!cpu->devices)
+     if (!cpu->devices)
           return;
   
-     for(i = 0; cpu->devices[i]; i++) {
+     for (i = 0; cpu->devices[i]; i++) {
           dev = cpu->devices[i];
-          if(dev->io(cpu, dev->data))
+          if (dev->io(cpu, dev->data))
                return;
      }
   
@@ -79,16 +81,17 @@ void iob_io(cpu_instance* cpu) {
      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
-void iob_reset(cpu_instance* cpu) {
+void
+iob_reset(cpu_instance *cpu) {
      io_device* dev;
      int i;
   
      asr33_reset(cpu);
   
-     if(!cpu->devices)
+     if (!cpu->devices)
           return;
   
-     for(i = 0; cpu->devices[i]; i++) {
+     for (i = 0; cpu->devices[i]; i++) {
           dev = cpu->devices[i];
           dev->reset(cpu, dev->data);
      }

@@ -28,17 +28,17 @@
 
 #define MAX_CMD_LENGTH (1024)
 
-char* readln_basic(const char* prompt) {
-     char* cmd;
+char *readln_basic(const char *prompt) {
+     char *cmd;
   
-     if(prompt && *prompt)
+     if (prompt && *prompt)
           printf(prompt);
   
      /*
       * BUG: Long commands are truncated without telling the user.
       */
      cmd = malloc(MAX_CMD_LENGTH);
-     if(!cmd)
+     if (!cmd)
           return NULL;
   
      fgets(cmd, MAX_CMD_LENGTH, stdin);

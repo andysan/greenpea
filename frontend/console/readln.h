@@ -31,7 +31,7 @@ extern char *readline ();
 #  endif /* !defined(HAVE_READLINE_H) */
 #else /* !defined(HAVE_READLINE_READLINE_H) */
 /* no readline */
-char* readln_basic(const char* prompt);
+char *readln_basic(const char *prompt);
 #define readline(p) readln_basic(p)
 #endif /* HAVE_LIBREADLINE */
 

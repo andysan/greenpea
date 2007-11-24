@@ -30,14 +30,14 @@
 #include <libpdp12utils/rim.h>
 #include <libpdp12utils/log.h>
 
-const char* argp_program_version =
+const char *argp_program_version =
 "PDP12 paper tape dumper version " VERSION ".\n"
 "Copyright (C) 2006 Andreas Sandberg <andreas@sandberg.pp.se>";
 
-const char* argp_program_bug_address = "<andreas@sandberg.pp.se>";
+const char *argp_program_bug_address = "<andreas@sandberg.pp.se>";
 
 typedef struct {
-     char* tape;
+     char *tape;
      int offset;
 } args;
 
@@ -48,7 +48,8 @@ const struct argp_option options[] = {
      { NULL, 0, NULL, 0, NULL}
 };
 
-static error_t parse_opt (int key, char *arg, struct argp_state *state)
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
 {
      args* a = state->input;
   
@@ -96,27 +97,28 @@ const struct argp a_argp = {
      NULL
 };
 
-void dump(char* tape, int offset) {
-     FILE* f = fopen(tape, "r");
-     int* core = malloc(sizeof(int) * 4096);
+void
+dump(char* tape, int offset) {
+     FILE *f = fopen(tape, "r");
+     int *core = malloc(sizeof(int) * 4096);
      int i;
   
      memset(core, 0xff, sizeof(int) * 4096);
   
-     if(f == NULL) {
+     if (f == NULL) {
           lprintf(LOG_ERROR, "Failed to input open file: %s\n", strerror(errno));
           exit(1);
      }
   
-     if(load_rim(f, offset, core, 4096) == -1) {
+     if (load_rim(f, offset, core, 4096) == -1) {
           lprintf(LOG_ERROR, "Failed to load RIM-file...\n");
           fclose(f);
           free(core);
           exit(1);
      }
   
-     for(i = 0; i < 4096; i++) {
-          if(core[i] > 0 && core[i] < 07777)
+     for (i = 0; i < 4096; i++) {
+          if (core[i] > 0 && core[i] < 07777)
                printf("%.4o: %.4o\n", i, core[i]);
      }
   
@@ -124,7 +126,8 @@ void dump(char* tape, int offset) {
      free(core);
 }
 
-int main(int argc, char** argp) {
+int
+main(int argc, char **argp) {
      args a;
   
      a.offset = 0;

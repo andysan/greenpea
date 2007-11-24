@@ -36,16 +36,17 @@ typedef enum {
 } parser_mode;
 
 typedef struct token_list_s {
-     const char* t;
+     const char *t;
      int l;
-     struct token_list_s* n;
+     struct token_list_s *n;
 } token_list;
 
 /*
  * Function that parses a text string and returns a NULL separated
  * string with the translated result.
  */
-static char* parse(const char* text) {
+static char *
+parse(const char* text) {
      int len = strlen(text);
      char* out = malloc(len+1);
      int i;
@@ -54,9 +55,9 @@ static char* parse(const char* text) {
   
      out[len] = '\0';
   
-     for(i = 0; i < len; i++) {
-          if(mode & PARSER_ESCAPE) {
-               if(text[i] == ' ' ||
+     for (i = 0; i < len; i++) {
+          if (mode & PARSER_ESCAPE) {
+               if (text[i] == ' ' ||
                   text[i] == '\"') {
                     out[i] = text[i];
                } else {
@@ -64,11 +65,11 @@ static char* parse(const char* text) {
                             "Unknown escape code received in parser.\n");
                }
           } else {
-               if(text[i] == '\\')
+               if (text[i] == '\\')
                     mode |= PARSER_ESCAPE;
-               else if(text[i] == '\"')
+               else if (text[i] == '\"')
                     mode ^= PARSER_QUOTE;
-               else if(!(mode & PARSER_QUOTE) && 
+               else if (!(mode & PARSER_QUOTE) && 
                        isspace(text[i])) {
                     out[i] = '\0';
                } else {
@@ -80,14 +81,16 @@ static char* parse(const char* text) {
      return out;
 }
 
-/* Function that parses and splits text and creates an
-   array with with string pointers in *out. Returns
-   the number of tokens.
-   
-   The caller is responsible for freeing up the memory
-   in (*out)[n].
-*/
-static int split(const char* text, char*** out) {
+/*
+ * Function that parses and splits text and creates an
+ * array with with string pointers in *out. Returns
+ * the number of tokens.
+ * 
+ * The caller is responsible for freeing up the memory
+ * in (*out)[n].
+ */
+static int
+split(const char *text, char ***out) {
      int i;
      int num_tokens = 0;
      token_list* tokens = NULL;
@@ -96,12 +99,12 @@ static int split(const char* text, char*** out) {
      int len = strlen(text);
      int t_len;
   
-     for(i = 0; i < len; i++) {
+     for (i = 0; i < len; i++) {
           t_len = strlen(&parsed[i]);
-          if(t_len == 0)
+          if (t_len == 0)
                continue;
     
-          if(t == NULL) {
+          if (t == NULL) {
                tokens = malloc(sizeof(token_list));
                t = tokens;
           } else {
@@ -118,7 +121,7 @@ static int split(const char* text, char*** out) {
   
      *out = malloc(sizeof(char*) * num_tokens);
      t = tokens;
-     for(i = 0; t; i++) {
+     for (i = 0; t; i++) {
           (*out)[i] = malloc(t->l + 1);
           memcpy((*out)[i], t->t, t->l + 1);
           t = t->n;
@@ -129,26 +132,28 @@ static int split(const char* text, char*** out) {
      return num_tokens;
 }
 
-static void free_args(int argc, char** argp) {
+static void
+free_args(int argc, char **argp) {
      int i;
-     for(i = 0; i < argc; i++)
+     for (i = 0; i < argc; i++)
           free(argp[i]);
   
      free(argp);
 }
 
-static void print_help(const parser_command* cmds, const char* cmd) {
+static void
+print_help(const parser_command *cmds, const char *cmd) {
      int i;
-     if(!cmd) {
-          for(i = 0; cmds[i].cmd_name; i++)
+     if (!cmd) {
+          for (i = 0; cmds[i].cmd_name; i++)
                lprintf(LOG_NORMAL, "%s\t\t%s\n",
                        cmds[i].cmd_name, cmds[i].help_short);
      } else {
-          for(i = 0; cmds[i].cmd_name; i++) {
-               if(!strcmp(cmds[i].cmd_name, cmd)) {
-                    if(cmds[i].help_long)
+          for (i = 0; cmds[i].cmd_name; i++) {
+               if (!strcmp(cmds[i].cmd_name, cmd)) {
+                    if (cmds[i].help_long)
                          lprintf(LOG_NORMAL, "%s\n", cmds[i].help_long);
-                    else if(cmds[i].help_short)
+                    else if (cmds[i].help_short)
                          lprintf(LOG_NORMAL, "%s\n%s\n",
                                  cmds[i].cmd_name, cmds[i].help_short);
                     else
@@ -162,9 +167,10 @@ static void print_help(const parser_command* cmds, const char* cmd) {
      }
 }
 
-void parser_exec(const parser_command* cmds, void* data, const char* c) {
+void
+parser_exec(const parser_command *cmds, void *data, const char *c) {
      int argc;
-     char** argp;
+     char **argp;
      int i;
   
      argc = split(c, &argp);
@@ -172,7 +178,7 @@ void parser_exec(const parser_command* cmds, void* data, const char* c) {
           return;
   
      if(!strcmp(argp[0], "help")) {
-          if(argc >= 2)
+          if (argc >= 2)
                print_help(cmds, argp[1]);
           else
                print_help(cmds, NULL);
@@ -181,9 +187,9 @@ void parser_exec(const parser_command* cmds, void* data, const char* c) {
           return;
      }
   
-     for(i = 0; cmds[i].cmd_name; i++) {
-          if(!strcmp(cmds[i].cmd_name, argp[0])) {
-               if(cmds[i].num_param == -1 ||
+     for (i = 0; cmds[i].cmd_name; i++) {
+          if (!strcmp(cmds[i].cmd_name, argp[0])) {
+               if (cmds[i].num_param == -1 ||
                   cmds[i].num_param == argc - 1)
                     cmds[i].do_cmd(argc, argp, data);
                else

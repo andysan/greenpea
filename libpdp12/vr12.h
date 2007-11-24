@@ -50,14 +50,14 @@
  *
  */
 typedef struct vr12_s {
-     void (*dis)(int x, int y, int channel, void* data);
-     void (*dsc_half)(int x, int y, int pattern, void* data);
-     void (*dsc_full)(int x, int y, int pattern, void* data);
-     void * data;
+     void (*dis)(int x, int y, int channel, void *data);
+     void (*dsc_half)(int x, int y, int pattern, void *data);
+     void (*dsc_full)(int x, int y, int pattern, void *data);
+     void *data;
 } vr12;
 
-void vr12_dis(vr12* vr12, int x, int y, int c);
-void vr12_dsc(vr12* vr12, int full, int x, int y, int pattern);
+void vr12_dis(vr12 *vr12, int x, int y, int c);
+void vr12_dsc(vr12 *vr12, int full, int x, int y, int pattern);
 
 #endif
 /* 
