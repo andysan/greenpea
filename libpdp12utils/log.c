@@ -22,8 +22,6 @@
 #include <config.h>
 #endif
 
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -41,10 +39,14 @@ lprintf(LOG_LEVEL level, const char *fmt, ...) {
 
      va_list ap;
      char *msg;
+     int len;
 
      va_start(ap, fmt);
+     len = vsnprintf(NULL, 0, fmt, ap);
 
-     if (vasprintf(&msg, fmt, ap) >= 0) {
+     msg = malloc(len + 1);
+     if (msg) {
+          vsnprintf(msg, len + 1, fmt, ap);
           log_sink(level, msg, log_data);
           free(msg);
      }
