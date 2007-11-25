@@ -46,9 +46,9 @@ typedef struct token_list_s {
  * string with the translated result.
  */
 static char *
-parse(const char* text) {
+parse(const char *text) {
      int len = strlen(text);
-     char* out = malloc(len+1);
+     char *out = malloc(len + 1);
      int i;
 
      parser_mode mode = PARSER_NORMAL;
@@ -70,7 +70,7 @@ parse(const char* text) {
                else if (text[i] == '\"')
                     mode ^= PARSER_QUOTE;
                else if (!(mode & PARSER_QUOTE) &&
-                       isspace(text[i])) {
+                        isspace((int)text[i])) {
                     out[i] = '\0';
                } else {
                     out[i] = text[i];

@@ -30,7 +30,12 @@
 #include <libpdp12/iob.h>
 #include <libpdp12utils/rim.h>
 #include <libpdp12utils/log.h>
+
+#ifdef HAVE_ARGP_H
 #include <argp.h>
+#else
+#include "include/argp.h"
+#endif
 
 #ifdef HAVE_SDL
 #include <SDL.h>
