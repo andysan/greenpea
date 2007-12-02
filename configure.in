@@ -1,10 +1,5 @@
-dnl
-dnl $Id$
-dnl
-AC_INIT([pdp12emu],[0.1])
+AC_INIT([greenpea],[0.1])
 AM_INIT_AUTOMAKE
-
-AC_REVISION($Revision$)
 
 AC_PROG_CC
 AC_PROG_INSTALL
