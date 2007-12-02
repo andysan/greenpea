@@ -41,9 +41,9 @@
 
 const char *argp_program_version =
 "PDP12 paper tape dumper version " VERSION ".\n"
-"Copyright (C) 2006 Andreas Sandberg <andreas@sandberg.pp.se>";
+"Copyright (C) 2006, 2007 Andreas Sandberg <sandberg@update.uu.se>";
 
-const char *argp_program_bug_address = "<andreas@sandberg.pp.se>";
+const char *argp_program_bug_address = "<sandberg@update.uu.se>";
 
 typedef struct {
      char *tape;
