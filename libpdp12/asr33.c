@@ -50,70 +50,70 @@
 
 int
 asr33_instr(cpu_instance_t *cpu) {
-     asr33_t *asr33 = cpu->asr33;
-     int ret = 0;
+    asr33_t *asr33 = cpu->asr33;
+    int ret = 0;
 
-     if (!asr33)
-          return 0;
+    if (!asr33)
+        return 0;
 
-     /* Skip on Keyboard flag */
-     if (HAS_INSTR(KSF)) {
-          if (asr33->keyboard_flag)
-               cpu_inc_pc(cpu);
+    /* Skip on Keyboard flag */
+    if (HAS_INSTR(KSF)) {
+        if (asr33->keyboard_flag)
+            cpu_inc_pc(cpu);
 
-          ret = 1;
-     }
+        ret = 1;
+    }
 
-     /* Clear Keyboard flag */
-     if (HAS_INSTR(KCC)) {
-          asr33->keyboard_flag = 0;
-          ret = 1;
-     }
-     /* Read Keyboard Buffer Static */
-     if (HAS_INSTR(KRS)) {
-          if (asr33->read)
-               cpu_set_ac(cpu, (cpu->ac & 07400) | (asr33->read(asr33->data) & 0377));
+    /* Clear Keyboard flag */
+    if (HAS_INSTR(KCC)) {
+        asr33->keyboard_flag = 0;
+        ret = 1;
+    }
+    /* Read Keyboard Buffer Static */
+    if (HAS_INSTR(KRS)) {
+        if (asr33->read)
+            cpu_set_ac(cpu, (cpu->ac & 07400) | (asr33->read(asr33->data) & 0377));
 
-          ret = 1;
-     }
+        ret = 1;
+    }
 
-     /* Skip on Teleprinter Flag */
-     if (HAS_INSTR(TSF)) {
-          if (asr33->printer_flag)
-               cpu_inc_pc(cpu);
+    /* Skip on Teleprinter Flag */
+    if (HAS_INSTR(TSF)) {
+        if (asr33->printer_flag)
+            cpu_inc_pc(cpu);
 
-          ret = 1;
-     }
+        ret = 1;
+    }
 
-     /* Clear Teleprinter Flag */
-     if (HAS_INSTR(TCF)) {
-          asr33->printer_flag = 0;
-          ret = 1;
-     }
+    /* Clear Teleprinter Flag */
+    if (HAS_INSTR(TCF)) {
+        asr33->printer_flag = 0;
+        ret = 1;
+    }
 
-     /* Load Teleprinter and Print */
-     if (HAS_INSTR(TPC)) {
-          if (asr33->print)
-               asr33->print(cpu->ac & 0377, asr33->data);
-          else
-               /* Pretend that the character was actually printed. */
-               asr33->printer_flag = 1;
+    /* Load Teleprinter and Print */
+    if (HAS_INSTR(TPC)) {
+        if (asr33->print)
+            asr33->print(cpu->ac & 0377, asr33->data);
+        else
+            /* Pretend that the character was actually printed. */
+            asr33->printer_flag = 1;
 
-          ret = 1;
-     }
+        ret = 1;
+    }
 
-     return ret;
+    return ret;
 }
 
 void
 asr33_reset(cpu_instance_t *cpu) {
-     asr33_t *asr33 = cpu->asr33;
+    asr33_t *asr33 = cpu->asr33;
 
-     if (!asr33)
-          return;
+    if (!asr33)
+        return;
 
-     asr33->printer_flag = 0;
-     asr33->keyboard_flag = 0;
+    asr33->printer_flag = 0;
+    asr33->keyboard_flag = 0;
 }
 /*
  * Local Variables:

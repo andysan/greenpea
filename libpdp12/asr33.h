@@ -34,16 +34,16 @@
  * Interface for the ASR33 device.
  */
 typedef struct {
-     /* Called when the instruction to print a character on the ASR33 is called.
-      * Is responsible for setting the printer_flag when printing is done.
-      */
-     void (*print)(unsigned char c, void *data);
-     char (*read)(void *data);
+    /* Called when the instruction to print a character on the ASR33 is called.
+     * Is responsible for setting the printer_flag when printing is done.
+     */
+    void (*print)(unsigned char c, void *data);
+    char (*read)(void *data);
 
-     int keyboard_flag : 1;
-     int printer_flag : 1;
+    int keyboard_flag : 1;
+    int printer_flag : 1;
 
-     void* data;
+    void* data;
 } asr33_t;
 
 int asr33_instr(cpu_instance_t *cpu);

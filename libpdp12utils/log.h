@@ -31,11 +31,11 @@
 #define _LOG_H
 
 typedef enum {
-     LOG_DEBUG = -20,
-     LOG_VERBOSE = -10,
-     LOG_NORMAL = 0,
-     LOG_WARNING = 10,
-     LOG_ERROR = 20
+    LOG_DEBUG = -20,
+    LOG_VERBOSE = -10,
+    LOG_NORMAL = 0,
+    LOG_WARNING = 10,
+    LOG_ERROR = 20
 } log_level_t;
 
 extern void (*log_sink)(int, const char *, void *);

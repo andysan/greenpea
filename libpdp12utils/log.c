@@ -43,32 +43,32 @@ void *log_data = NULL;
 
 void
 lprintf(log_level_t level, const char *fmt, ...) {
-     if (level < global_log_level)
-          return;
+    if (level < global_log_level)
+        return;
 
-     va_list ap;
-     char *msg;
-     int len;
+    va_list ap;
+    char *msg;
+    int len;
 
-     va_start(ap, fmt);
-     len = vsnprintf(NULL, 0, fmt, ap);
+    va_start(ap, fmt);
+    len = vsnprintf(NULL, 0, fmt, ap);
 
-     msg = malloc(len + 1);
-     if (msg) {
-          vsnprintf(msg, len + 1, fmt, ap);
-          log_sink(level, msg, log_data);
-          free(msg);
-     }
+    msg = malloc(len + 1);
+    if (msg) {
+        vsnprintf(msg, len + 1, fmt, ap);
+        log_sink(level, msg, log_data);
+        free(msg);
+    }
 
-     va_end(ap);
+    va_end(ap);
 }
 
 void
 log_sink_default(int level, const char *msg, void *data) {
-     if (level >= LOG_WARNING)
-          fprintf(stderr, "%s", msg);
-     else
-          fprintf(stdout, "%s", msg);
+    if (level >= LOG_WARNING)
+        fprintf(stderr, "%s", msg);
+    else
+        fprintf(stdout, "%s", msg);
 }
 /*
  * Local Variables:

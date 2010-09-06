@@ -58,10 +58,10 @@
  *
  */
 typedef struct {
-     void (*dis)(int x, int y, int channel, void *data);
-     void (*dsc_half)(int x, int y, int pattern, void *data);
-     void (*dsc_full)(int x, int y, int pattern, void *data);
-     void *data;
+    void (*dis)(int x, int y, int channel, void *data);
+    void (*dsc_half)(int x, int y, int pattern, void *data);
+    void (*dsc_full)(int x, int y, int pattern, void *data);
+    void *data;
 } vr12_t;
 
 void vr12_dis(vr12_t *vr12, int x, int y, int c);
