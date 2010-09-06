@@ -64,12 +64,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
      switch (key) {
      case 'd':
-          log_level = atoi(arg);
+          global_log_level = atoi(arg);
           break;
 
      case 'v':
-          if(log_level > LOG_VERBOSE)
-               log_level = LOG_VERBOSE;
+          if(global_log_level > LOG_VERBOSE)
+               global_log_level = LOG_VERBOSE;
           break;
 
      case 'o':
@@ -144,7 +144,7 @@ main(int argc, char **argp) {
 
      argp_parse(&a_argp, argc, argp, 0, NULL, &a);
 
-     printf("Log level: %i\n", log_level);
+     printf("Log level: %i\n", global_log_level);
      dump(a.tape, a.offset);
 
      return 0;

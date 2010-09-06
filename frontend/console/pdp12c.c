@@ -88,12 +88,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
      switch (key) {
      case 'd':
-          log_level = atoi(arg);
+          global_log_level = atoi(arg);
           break;
 
      case 'v':
-          if (log_level > LOG_VERBOSE)
-               log_level = LOG_VERBOSE;
+          if (global_log_level > LOG_VERBOSE)
+               global_log_level = LOG_VERBOSE;
           break;
 
      case 'n':
@@ -144,7 +144,7 @@ sig_int(int signum) {
 
 static void
 asr33_print(unsigned char c, void *data) {
-     if (log_level <= LOG_VERBOSE)
+     if (global_log_level <= LOG_VERBOSE)
           lprintf(LOG_NORMAL, "asr33_print: %c (0%o)\n", c & 0177, c);
      else
           lprintf(LOG_NORMAL, "%c", c & 0177);

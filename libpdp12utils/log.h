@@ -39,7 +39,7 @@ typedef enum {
 } LOG_LEVEL;
 
 extern void (*log_sink)(int, const char *, void *);
-extern LOG_LEVEL log_level;
+extern LOG_LEVEL global_log_level;
 extern void *log_data;
 
 void lprintf(LOG_LEVEL level, const char *fmt, ...);
