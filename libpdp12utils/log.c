@@ -66,9 +66,9 @@ lprintf(LOG_LEVEL level, const char *fmt, ...) {
 void
 log_sink_default(int level, const char *msg, void *data) {
      if (level >= LOG_WARNING)
-          fprintf(stderr, msg);
+          fprintf(stderr, "%s", msg);
      else
-          fprintf(stdout, msg);
+          fprintf(stdout, "%s", msg);
 }
 /*
  * Local Variables:

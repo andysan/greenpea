@@ -41,7 +41,7 @@ char *readln_basic(const char *prompt) {
      char *cmd;
 
      if (prompt && *prompt)
-          printf(prompt);
+          printf("%s", prompt);
 
      /*
       * BUG: Long commands are truncated without telling the user.
