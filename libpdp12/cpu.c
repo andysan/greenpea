@@ -37,9 +37,9 @@
 #include "pdp8.h"
 #include "linc.h"
 
-cpu_instance *
+cpu_instance_t *
 cpu_create() {
-     cpu_instance *cpu = malloc(sizeof(cpu_instance));
+     cpu_instance_t *cpu = malloc(sizeof(cpu_instance_t));
      /* TODO: Check buffer allocation */
 
      /* Registers */
@@ -73,18 +73,18 @@ cpu_create() {
 }
 
 void
-cpu_destroy(cpu_instance *cpu) {
+cpu_destroy(cpu_instance_t *cpu) {
      free(cpu);
 }
 
 void
-cpu_io_preset(cpu_instance *cpu) {
+cpu_io_preset(cpu_instance_t *cpu) {
      /* TODO: Check what more needs to go into this operation */
      cpu->esf = CPU_ESF_CHAR_SIZE;
 }
 
 void
-cpu_step(cpu_instance *cpu) {
+cpu_step(cpu_instance_t *cpu) {
      if (cpu->flags & CPU_FLAGS_8MODE) {
           pdp8_step(cpu);
      } else {
@@ -93,51 +93,51 @@ cpu_step(cpu_instance *cpu) {
 }
 
 void
-cpu_set_ac(cpu_instance *cpu, int ac) {
+cpu_set_ac(cpu_instance_t *cpu, int ac) {
      lprintf(LOG_DEBUG, "cpu_set_ac %.4o\n", ac);
      cpu->ac = ac & 07777;
 }
 
 void
-cpu_set_pc(cpu_instance *cpu, int pc) {
+cpu_set_pc(cpu_instance_t *cpu, int pc) {
      lprintf(LOG_DEBUG, "cpu_set_pc %.4o\n", pc);
      cpu->pc = pc & 07777;
 }
 
 void
-cpu_set_mq(cpu_instance *cpu, int mq) {
+cpu_set_mq(cpu_instance_t *cpu, int mq) {
      lprintf(LOG_DEBUG, "cpu_set_mq %.4o\n", mq);
      cpu->mq = mq & 07777;
 }
 
 void
-cpu_set_l(cpu_instance *cpu, int l) {
+cpu_set_l(cpu_instance_t *cpu, int l) {
      lprintf(LOG_DEBUG, "cpu_set_l %i\n", l);
      cpu->l = l ? 1 : 0;
 }
 
 void
-cpu_set_state(cpu_instance *cpu, cpu_states s) {
+cpu_set_state(cpu_instance_t *cpu, cpu_states_t s) {
      cpu->state |= s;
 }
 
 void
-cpu_clear_state(cpu_instance *cpu, cpu_states s) {
+cpu_clear_state(cpu_instance_t *cpu, cpu_states_t s) {
      cpu->state &= ~s;
 }
 
 void
-cpu_set_flag(cpu_instance *cpu, cpu_flags f) {
+cpu_set_flag(cpu_instance_t *cpu, cpu_flags_t f) {
      cpu->flags |= f;
 }
 
 void
-cpu_clear_flag(cpu_instance *cpu, cpu_flags f) {
+cpu_clear_flag(cpu_instance_t *cpu, cpu_flags_t f) {
      cpu->flags &= ~f;
 }
 
 void
-cpu_set_relays(cpu_instance *cpu, int r) {
+cpu_set_relays(cpu_instance_t *cpu, int r) {
      cpu->relays = r & 077;
      if (cpu->callbacks && cpu->callbacks->update_relays)
           cpu->callbacks->update_relays(cpu,
@@ -145,25 +145,25 @@ cpu_set_relays(cpu_instance *cpu, int r) {
 }
 
 void
-cpu_set_ifr(cpu_instance *cpu, int n) {
+cpu_set_ifr(cpu_instance_t *cpu, int n) {
      lprintf(LOG_DEBUG, "cpu_set_ifr: %.2o\n", n);
      cpu->ifr = n & 037;
 }
 
 void
-cpu_set_dfr(cpu_instance *cpu, int n) {
+cpu_set_dfr(cpu_instance_t *cpu, int n) {
      lprintf(LOG_DEBUG, "cpu_set_dfr: %.2o\n", n);
      cpu->dfr = n & 037;
 }
 
 void
-cpu_set_esf(cpu_instance *cpu, int n) {
+cpu_set_esf(cpu_instance_t *cpu, int n) {
      lprintf(LOG_DEBUG, "cpu_set_esf: %.2o\n", n);
      cpu->esf = n & 076;
 }
 
 void
-cpu_write(cpu_instance *cpu, int ma, int mb) {
+cpu_write(cpu_instance_t *cpu, int ma, int mb) {
      /* TODO: Do something useful after outputing error. */
      lprintf(LOG_DEBUG, "cpu_write: %.4o %.4o\n", ma, mb);
      if (ma > CPU_CORE_SIZE)
@@ -173,7 +173,7 @@ cpu_write(cpu_instance *cpu, int ma, int mb) {
 }
 
 int
-cpu_read(cpu_instance *cpu, int ma) {
+cpu_read(cpu_instance_t *cpu, int ma) {
      /* TODO: Do something useful after outputing error. */
      lprintf(LOG_DEBUG, "cpu_read: %.4o\n", ma);
      if (ma > CPU_CORE_SIZE) {
@@ -185,7 +185,7 @@ cpu_read(cpu_instance *cpu, int ma) {
 }
 
 int
-cpu_call_sam(cpu_instance *cpu, int n) {
+cpu_call_sam(cpu_instance_t *cpu, int n) {
      if (cpu->callbacks && cpu->callbacks->sample_ad)
           return cpu->callbacks->sample_ad(cpu,
                                            cpu->callbacks->data,
@@ -195,7 +195,7 @@ cpu_call_sam(cpu_instance *cpu, int n) {
 }
 
 int
-cpu_call_ext_level(cpu_instance *cpu, int level) {
+cpu_call_ext_level(cpu_instance_t *cpu, int level) {
      if (cpu->callbacks && cpu->callbacks->get_level)
           return cpu->callbacks->get_level(cpu,
                                            cpu->callbacks->data,
@@ -206,7 +206,7 @@ cpu_call_ext_level(cpu_instance *cpu, int level) {
 }
 
 void
-cpu_inc_pc(cpu_instance *cpu) {
+cpu_inc_pc(cpu_instance_t *cpu) {
      if (cpu->flags & CPU_FLAGS_8MODE) {
           pdp8_inc_pc(cpu);
      } else {

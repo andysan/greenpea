@@ -49,8 +49,8 @@
 #define HAS_INSTR(mn) ((cpu->ir & ASR33_ ## mn) == ASR33_ ## mn)
 
 int
-asr33_instr(cpu_instance *cpu) {
-     asr33 *asr33 = cpu->asr33;
+asr33_instr(cpu_instance_t *cpu) {
+     asr33_t *asr33 = cpu->asr33;
      int ret = 0;
 
      if (!asr33)
@@ -106,8 +106,8 @@ asr33_instr(cpu_instance *cpu) {
 }
 
 void
-asr33_reset(cpu_instance *cpu) {
-     asr33 *asr33 = cpu->asr33;
+asr33_reset(cpu_instance_t *cpu) {
+     asr33_t *asr33 = cpu->asr33;
 
      if (!asr33)
           return;

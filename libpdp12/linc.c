@@ -34,20 +34,20 @@
 #include "linc.h"
 
 #define INSTRUCTION_D(mn) \
-  static void instr_ ## mn(cpu_instance *cpu, int addr)
+  static void instr_ ## mn(cpu_instance_t *cpu, int addr)
 
 #define INSTRUCTION_A(mn) \
-  static void instr_ ## mn(cpu_instance *cpu, int i, int a, int ia)
+  static void instr_ ## mn(cpu_instance_t *cpu, int i, int a, int ia)
 
 #define INSTRUCTION_S(mn) \
-  static int instr_ ## mn(cpu_instance *cpu, int a)
+  static int instr_ ## mn(cpu_instance_t *cpu, int a)
 
 
 #define INSTRUCTION_B(mn) \
-  static void instr_ ## mn (cpu_instance *cpu, int addr)
+  static void instr_ ## mn (cpu_instance_t *cpu, int addr)
 
 #define INSTRUCTION_HF(mn) \
-  static void instr_ ## mn (cpu_instance *cpu, int hf, int addr)
+  static void instr_ ## mn (cpu_instance_t *cpu, int hf, int addr)
 
 #define CASE_D(mn)	      \
   case LINC_OP_ ## mn:	      \
@@ -124,21 +124,21 @@ static const char *mnemonics_a[] = {NULL,
 				    "TRAP3"};
 
 void
-linc_inc_pc(cpu_instance *cpu) {
+linc_inc_pc(cpu_instance_t *cpu) {
      cpu_set_pc(cpu,
                 (cpu->pc & 06000) | ((cpu->pc + 1) & 01777));
 }
 
 
 int
-linc_read(cpu_instance *cpu, int addr) {
+linc_read(cpu_instance_t *cpu, int addr) {
      return cpu_read(cpu,
                      (addr & 01777) |
                      (addr & 02000 ? cpu->dfr : cpu->ifr) << 10);
 }
 
 void
-linc_write(cpu_instance *cpu, int addr, int data) {
+linc_write(cpu_instance_t *cpu, int addr, int data) {
      cpu_write(cpu,
                (addr & 01777) |
                (addr & 02000 ? cpu->dfr : cpu->ifr) << 10,
@@ -162,7 +162,7 @@ linc_write(cpu_instance *cpu, int addr, int data) {
  *
  */
 static int
-beta_addr(cpu_instance *cpu, int op, int i, int b) {
+beta_addr(cpu_instance_t *cpu, int op, int i, int b) {
      int temp;
 
      if (b == 0) {
@@ -197,7 +197,7 @@ beta_addr(cpu_instance *cpu, int op, int i, int b) {
  * and the results have a different sign, then overflow has occured.
  */
 static void
-check_overflow(cpu_instance *cpu, int op1, int op2, int res) {
+check_overflow(cpu_instance_t *cpu, int op1, int op2, int res) {
      if ((op1 & 04000) == (op2 & 04000) &&
          (res & 04000) != (op1 & 04000))
           cpu_set_flag(cpu, CPU_FLAGS_FLO);
@@ -206,12 +206,12 @@ check_overflow(cpu_instance *cpu, int op1, int op2, int res) {
 }
 
 static void
-linc_set_sfr(cpu_instance *cpu) {
+linc_set_sfr(cpu_instance_t *cpu) {
      cpu->sfr = (cpu->ifr << 5) | cpu->dfr;
 }
 
 static void
-linc_trap(cpu_instance *cpu) {
+linc_trap(cpu_instance_t *cpu) {
      linc_set_sfr(cpu);
      cpu_set_ifr(cpu, 0);
      linc_write(cpu, LINC_TRAP_SAVE_PC, cpu->pc);
@@ -857,7 +857,7 @@ INSTRUCTION_A(LSW) {
  * +-----+-----------------------+
  */
 static void
-instr_direct(cpu_instance *cpu, int op, int addr) {
+instr_direct(cpu_instance_t *cpu, int op, int addr) {
      lprintf(LOG_VERBOSE, "%.4o: %s 0%.4o\n", cpu->pc, mnemonics_d[op], addr);
 
      switch (op) {
@@ -877,7 +877,7 @@ instr_direct(cpu_instance *cpu, int op, int addr) {
  * +-------+---------+---+-----------+
  */
 static void
-instr_alpha(cpu_instance *cpu, int op, int i, int a) {
+instr_alpha(cpu_instance_t *cpu, int op, int i, int a) {
      int ia = (i << 4) | a;
      int skip;
 
@@ -980,7 +980,7 @@ instr_alpha(cpu_instance *cpu, int op, int i, int a) {
  * +-------+---------+---+-----------+
  */
 static void
-instr_beta(cpu_instance *cpu, int op, int i, int b) {
+instr_beta(cpu_instance_t *cpu, int op, int i, int b) {
      int addr = beta_addr(cpu, op, i, b);
      /* Should we use the right half?
       * Or in case of MUL, are we dealing with fractions?
@@ -1027,7 +1027,7 @@ instr_beta(cpu_instance *cpu, int op, int i, int b) {
 }
 
 void
-linc_do(cpu_instance *cpu) {
+linc_do(cpu_instance_t *cpu) {
      lprintf(LOG_DEBUG, "linc_step pc: 0%o ir: 0%o\n", cpu->pc, cpu->ir);
 
      switch (cpu->ir & 07000) {
@@ -1055,7 +1055,7 @@ linc_do(cpu_instance *cpu) {
 }
 
 void
-linc_step(cpu_instance *cpu) {
+linc_step(cpu_instance_t *cpu) {
      cpu->ir = linc_read(cpu, cpu->pc & 01777);
      linc_inc_pc(cpu);
      linc_do(cpu);

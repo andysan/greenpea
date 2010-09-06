@@ -37,12 +37,12 @@
 #include "log.h"
 
 void (*log_sink)(int, const char *, void *) = &log_sink_default;
-LOG_LEVEL global_log_level = LOG_NORMAL;
+log_level_t global_log_level = LOG_NORMAL;
 void *log_data = NULL;
 
 
 void
-lprintf(LOG_LEVEL level, const char *fmt, ...) {
+lprintf(log_level_t level, const char *fmt, ...) {
      if (level < global_log_level)
           return;
 

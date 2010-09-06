@@ -39,7 +39,7 @@
 
 
 static void
-vr12_dsce(int full, vr12 *vr12, int x, int y, int pattern) {
+vr12_dsce(int full, vr12_t *vr12, int x, int y, int pattern) {
      int i;
      int spacing = full ? 04 : 02;
 
@@ -55,7 +55,7 @@ vr12_dsce(int full, vr12 *vr12, int x, int y, int pattern) {
 }
 
 void
-vr12_dis(vr12 *vr12, int x, int y, int c) {
+vr12_dis(vr12_t *vr12, int x, int y, int c) {
      if (!vr12 || !vr12->dis)
           return;
 
@@ -63,7 +63,7 @@ vr12_dis(vr12 *vr12, int x, int y, int c) {
 }
 
 void
-vr12_dsc(vr12 *vr12, int full, int x, int y, int pattern) {
+vr12_dsc(vr12_t *vr12, int full, int x, int y, int pattern) {
      if (!vr12)
           return;
 

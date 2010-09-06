@@ -33,7 +33,7 @@
 #include "asr33.h"
 
 static int
-pdp12_io(cpu_instance *cpu) {
+pdp12_io(cpu_instance_t *cpu) {
      switch (cpu->ir) {
      case IOB_ION:
           lprintf(LOG_VERBOSE, "Enabling interrupts.\n");
@@ -66,8 +66,8 @@ pdp12_io(cpu_instance *cpu) {
 }
 
 void
-iob_io(cpu_instance *cpu) {
-     io_device* dev;
+iob_io(cpu_instance_t *cpu) {
+     io_device_t *dev;
      int i;
 
      if (pdp12_io(cpu))
@@ -90,8 +90,8 @@ iob_io(cpu_instance *cpu) {
 }
 
 void
-iob_reset(cpu_instance *cpu) {
-     io_device* dev;
+iob_reset(cpu_instance_t *cpu) {
+     io_device_t *dev;
      int i;
 
      asr33_reset(cpu);

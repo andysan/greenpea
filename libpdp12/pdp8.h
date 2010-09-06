@@ -72,14 +72,14 @@
 #define PDP8_EAE_ASR  (06 << 1)
 #define PDP8_EAE_LSR  (07 << 1)
 
-void pdp8_do(cpu_instance *cpu);
-void pdp8_step(cpu_instance *cpu);
-void pdp8_inc_pc(cpu_instance *cpu);
+void pdp8_do(cpu_instance_t *cpu);
+void pdp8_step(cpu_instance_t *cpu);
+void pdp8_inc_pc(cpu_instance_t *cpu);
 
-int pdp8_read_d(cpu_instance *cpu, int addr);
-void pdp8_write_d(cpu_instance *cpu, int addr, int data);
-int pdp8_read_i(cpu_instance *cpu, int addr);
-void pdp8_write_i(cpu_instance *cpu, int addr, int data);
+int pdp8_read_d(cpu_instance_t *cpu, int addr);
+void pdp8_write_d(cpu_instance_t *cpu, int addr, int data);
+int pdp8_read_i(cpu_instance_t *cpu, int addr);
+void pdp8_write_i(cpu_instance_t *cpu, int addr, int data);
 
 #endif
 /*

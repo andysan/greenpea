@@ -44,7 +44,7 @@ static const char *mnemonics[] = {"AND",
 				  "OTHER"};
 
 #define INSTRUCTION_M(mn) \
-  static void instr_ ## mn (cpu_instance *cpu, int i, int eaddr)
+  static void instr_ ## mn (cpu_instance_t *cpu, int i, int eaddr)
 
 #define CASE_M(mn)		      \
   case PDP8_OP_ ## mn:		      \
@@ -127,19 +127,19 @@ INSTRUCTION_M(JMP) {
 }
 
 void
-pdp8_inc_pc(cpu_instance *cpu) {
+pdp8_inc_pc(cpu_instance_t *cpu) {
      cpu_set_pc(cpu, (cpu->pc + 1) & 07777);
 }
 
 int
-pdp8_read_d(cpu_instance *cpu, int addr) {
+pdp8_read_d(cpu_instance_t *cpu, int addr) {
      return cpu_read(cpu,
                      (addr & 07777) |
                      ((cpu->dfr & 034) << 10));
 }
 
 void
-pdp8_write_d(cpu_instance *cpu, int addr, int data) {
+pdp8_write_d(cpu_instance_t *cpu, int addr, int data) {
      cpu_write(cpu,
                (addr & 07777) |
                ((cpu->dfr & 034) << 10),
@@ -147,14 +147,14 @@ pdp8_write_d(cpu_instance *cpu, int addr, int data) {
 }
 
 int
-pdp8_read_i(cpu_instance *cpu, int addr) {
+pdp8_read_i(cpu_instance_t *cpu, int addr) {
      return cpu_read(cpu,
                      (addr & 07777) |
                      ((cpu->ifr & 034) << 10));
 }
 
 void
-pdp8_write_i(cpu_instance *cpu, int addr, int data) {
+pdp8_write_i(cpu_instance_t *cpu, int addr, int data) {
      cpu_write(cpu,
                (addr & 07777) |
                ((cpu->ifr & 034) << 10),
@@ -162,7 +162,7 @@ pdp8_write_i(cpu_instance *cpu, int addr, int data) {
 }
 
 static void
-instr_mem(cpu_instance *cpu) {
+instr_mem(cpu_instance_t *cpu) {
      int op = cpu->ir & 07000;      /* Operation Code */
      int i = cpu->ir & 0400;        /* Indirect Addressing */
      int p = cpu->ir & 0200;        /* Memory Page */
@@ -199,7 +199,7 @@ instr_mem(cpu_instance *cpu) {
 }
 
 static void
-instr_g1(cpu_instance *cpu) {
+instr_g1(cpu_instance_t *cpu) {
      int temp;
      int rot = (cpu->ir & PDP8_G1_ROTX2) ? 2 : 1;
 
@@ -238,7 +238,7 @@ instr_g1(cpu_instance *cpu) {
 }
 
 static void
-instr_g2(cpu_instance *cpu) {
+instr_g2(cpu_instance_t *cpu) {
      int sense = cpu->ir & PDP8_G2_SENSE;
      int skip = sense ? 1 : 0;
 
@@ -282,13 +282,13 @@ instr_g2(cpu_instance *cpu) {
 }
 
 static void
-instr_eae(cpu_instance *cpu) {
+instr_eae(cpu_instance_t *cpu) {
      lprintf(LOG_ERROR, "Extended Arithmetic Element (KE12) not implemented.\n");
      cpu_clear_flag(cpu, CPU_FLAGS_RUN);
 }
 
 void
-pdp8_do(cpu_instance *cpu) {
+pdp8_do(cpu_instance_t *cpu) {
      int op = cpu->ir & 07000;  /* Operation Code */
      lprintf(LOG_VERBOSE, "%.4o: %s (%.4o)\n", cpu->pc, mnemonics[op >> 9], cpu->ir);
 
@@ -319,7 +319,7 @@ pdp8_do(cpu_instance *cpu) {
 }
 
 void
-pdp8_step(cpu_instance *cpu) {
+pdp8_step(cpu_instance_t *cpu) {
      cpu->ir = pdp8_read_i(cpu, cpu->pc);
      pdp8_inc_pc(cpu);
      pdp8_do(cpu);

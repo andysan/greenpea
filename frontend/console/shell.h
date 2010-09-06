@@ -32,8 +32,8 @@
 
 #define MAX_SCRIPT_LINE_LENGTH (1024)
 
-void shell_script(cpu_instance *cpu, const char *name);
-void shell_start(cpu_instance *cpu);
+void shell_script(cpu_instance_t *cpu, const char *name);
+void shell_start(cpu_instance_t *cpu);
 
 #endif
 /*

@@ -36,13 +36,13 @@ typedef enum {
      LOG_NORMAL = 0,
      LOG_WARNING = 10,
      LOG_ERROR = 20
-} LOG_LEVEL;
+} log_level_t;
 
 extern void (*log_sink)(int, const char *, void *);
-extern LOG_LEVEL global_log_level;
+extern log_level_t global_log_level;
 extern void *log_data;
 
-void lprintf(LOG_LEVEL level, const char *fmt, ...);
+void lprintf(log_level_t level, const char *fmt, ...);
 void log_sink_default(int level, const char *msg, void *data);
 
 #endif

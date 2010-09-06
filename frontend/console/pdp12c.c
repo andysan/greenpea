@@ -59,7 +59,7 @@ static Uint32 channel_colors[2][0x100];
 
 unsigned char vr12_surface[2][512][512];
 
-static cpu_instance *cpu = NULL;
+static cpu_instance_t *cpu = NULL;
 
 const char *argp_program_version =
 "PDP12 simulator version " VERSION ".\n"
@@ -234,9 +234,9 @@ sdl_update() {
 
 static void
 start_emulator(args *a) {
-     io_device *devices[] = { NULL };
-     asr33 asr33;
-     vr12 vr12;
+     io_device_t *devices[] = { NULL };
+     asr33_t asr33;
+     vr12_t vr12;
      /* int i; */
 
      asr33.print = &asr33_print;
