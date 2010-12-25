@@ -1,0 +1,40 @@
+                        / Define two symbols for I/O Transfer (IOT) instructions
+                        /
+TSF = 6041              / Teleprinter Skip-on-Flag
+TLS = 6046              / Teleprinter Load Sequence (Clear flag and print from AC)
+                        /
+                        / (Many PDP-8 assemblers contained these very basic IOTs predefined)
+
+
+*200                    / Assemble the following code starting at location 0200
+                        /   (the beginning of Page 1 in Field 0)
+
+START, CLA CLL          / Clear the AC and the Link bit
+       TAD DATA	        / Point AC just *BEFORE* the data (accounting for later pre-increment behavior)
+       DCA 10           / Put that into one of ten auto-pre-increment memory locations
+LOOP,  TSF              / Test the printer "ready" flag, skip if ready
+       JMP .-1          / Jump back if not yet ready
+       TAD I 10         / Pre-increment mem location 10, fetch indirect to get the next character of our message
+       SNA              / Skip on non-zero AC
+       HLT              / Else halt at end of message
+       TLS              / Clear the printer "ready" flag and output character contained in the AC
+       CLA CLL          / Clear AC for the next loop
+       JMP LOOP         / Jump back for the next character
+
+DATA,  DATA
+       "H               / A well-known message
+       "e               /
+       "l               / NOTE:
+       "l               /
+       "o               /   Strings in PAL-8 and PAL-III were "sixbit"
+       ",               /   To use ASCII, we'll have to spell that out, character by character
+       "                /
+       "w               /
+       "o               /
+       "r               /
+       "l               /
+       "d               /
+       "!               /
+       015              /
+       012              /
+       0                / Mark the end of our .ASCIZ string ('cause .ASCIZ hadn't been invented yet!)

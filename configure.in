@@ -30,11 +30,17 @@ fi
 
 CFLAGS="-Wall -Werror"
 
+dnl Check for bison and flex (needed by pal)
+
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_FILES([Makefile \
 		pdp12-emu.spec \
 		libpdp12/Makefile \
 		libpdp12utils/Makefile \
 		frontend/Makefile \
-		frontend/console/Makefile])
+		frontend/console/Makefile \
+		tools/Makefile \
+		tools/pal/Makefile \
+		tools/pal/test/Makefile \
+])
 AC_OUTPUT
