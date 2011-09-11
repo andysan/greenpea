@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2007 Andreas Sandberg
+ * Copyright (c) 2006-2011 Andreas Sandberg
  *
  * All rights reserved.
  *
@@ -37,14 +37,16 @@
 #include <libpdp12utils/log.h>
 #include "rim.h"
 
+#define RIM_LEADER_TRAILER 0x80
+#define RIM_ADDR 0x40
+
+
 int
 load_rim(FILE *file, int offset, int *core, int core_size) {
-    int b1, b2, b3;
-    int word;
-    unsigned int checksum = 0;
+    int c ;
+    int addr = 0;
+    int word = 0;
     int count = 0;
-
-    int addr = -1;
 
     if (fseek(file, offset, SEEK_SET) == -1) {
         lprintf(LOG_ERROR,
@@ -54,69 +56,51 @@ load_rim(FILE *file, int offset, int *core, int core_size) {
     }
 
     lprintf(LOG_DEBUG, "Scanning input file...\n");
-    while (1) {
-        b1 = fgetc(file);
-        if (b1 == EOF) {
+    do {
+        c = fgetc(file);
+        if (c == EOF) {
             lprintf(LOG_VERBOSE,
                     "Reached EOF in file before finding useful data.\n");
             return 0;
         }
+    } while (c == 0);
+    ungetc(c, file);
 
-
-        if (b1 != 0 && (b1 & 0200) == 0) {
-            ungetc(b1, file);
-            break;
-        }
-    }
-
-    b3 = fgetc(file);
     while (1) {
-        b1 = b3;
-        b2 = fgetc(file);
-        b3 = fgetc(file);
-
-        if (b1 == EOF ||
-            b2 == EOF) {
-            lprintf(LOG_ERROR,
-                    "Unexpected EOF when scanning RIM-file.\n");
-            return -1;
-        }
-
-        word = ((b1 << 6) | b2) & 07777;
-
-        if (b3 & 0200)
+        c = fgetc(file);
+        if (c == EOF)
             break;
 
-        checksum += (unsigned int) b1 + (unsigned int) b2;
-        if (b1 & 0100)
-            addr = word;
+        if (c & RIM_LEADER_TRAILER)
+            continue;
+
+        word = c << 6;
+
+        c = fgetc(file);
+        if (c == EOF)
+            break;
+        word |= c;
+
+        if (word & (RIM_ADDR << 6))
+            addr = (word & 07777);
         else {
             if (addr >= 0 && addr < core_size) {
-                core[addr++] = word;
+                core[addr] = word & 07777;
                 count++;
             } else {
                 lprintf(LOG_ERROR,
                         "Address (%.4o) outside allocated core! Failing.\n",
                         addr);
+                return -1;
             }
 
         }
     }
 
-    checksum &= 07777;
-    if (word != checksum) {
-        lprintf(LOG_ERROR,
-                "RIM loader cheksum error in file.\n"
-                "Calculated checksum: %.4o\n"
-                "Expected cheksum: %.4o\n",
-                word, checksum);
-        return -1;
-    } else {
-        lprintf(LOG_DEBUG,
-                "RIM loader loaded %.4o words.\n",
-                count);
-        return count;
-    }
+    lprintf(LOG_DEBUG,
+            "RIM loader loaded %.4o words.\n",
+            count);
+    return count;
 }
 /*
  * Local Variables:

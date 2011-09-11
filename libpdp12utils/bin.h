@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011 Andreas Sandberg
+ * Copyright (c) 2011 Andreas Sandberg
  *
  * All rights reserved.
  *
@@ -27,13 +27,13 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _RIM_H
-#define _RIM_H
+#ifndef _BIN_H
+#define _BIN_H
 
 #include <stdio.h>
 
 /*
- * Loads a rim-file.
+ * Loads a bin-file.
  *
  * IN:
  * file - Pointer to a file to be read, mustn't be NULL.
@@ -43,7 +43,7 @@
  * RET:
  * Returns number of words read, -1 on failure.
  */
-int load_rim(FILE* file, int offset, int* core, int core_size);
+int load_bin(FILE* file, int offset, int* core, int core_size);
 
 
 #endif

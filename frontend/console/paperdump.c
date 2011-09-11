@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2007 Andreas Sandberg
+ * Copyright (c) 2006-2011 Andreas Sandberg
  *
  * All rights reserved.
  *
@@ -37,6 +37,7 @@
 #include <argp.h>
 #include <errno.h>
 #include <libpdp12utils/rim.h>
+#include <libpdp12utils/bin.h>
 #include <libpdp12utils/log.h>
 
 const char *argp_program_version =
@@ -48,10 +49,12 @@ const char *argp_program_bug_address = "<sandberg@update.uu.se>";
 typedef struct {
     char *tape;
     int offset;
+    int mode_rim;
 } args;
 
 const struct argp_option options[] = {
     { "debug", 'd', "level", 0, "Modifies the debug output threshold"},
+    { "rim", 'r', NULL, 0, "Load a RIM image instead of a BIN image"},
     { "verbose", 'v', NULL, 0, "Produce verbose output"},
     { "offset", 'o', "offset", 0, "Use offset for input"},
     { NULL, 0, NULL, 0, NULL}
@@ -65,6 +68,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
     switch (key) {
     case 'd':
         global_log_level = atoi(arg);
+        break;
+
+    case 'r':
+        a->mode_rim = 1;
         break;
 
     case 'v':
@@ -107,7 +114,7 @@ const struct argp a_argp = {
 };
 
 void
-dump(char* tape, int offset) {
+dump(char* tape, int offset, int mode_rim) {
     FILE *f = fopen(tape, "r");
     int *core = malloc(sizeof(int) * 4096);
     int i;
@@ -119,11 +126,16 @@ dump(char* tape, int offset) {
         exit(1);
     }
 
-    if (load_rim(f, offset, core, 4096) == -1) {
-        lprintf(LOG_ERROR, "Failed to load RIM-file...\n");
-        fclose(f);
-        free(core);
-        exit(1);
+    if (mode_rim) {
+        if (load_rim(f, offset, core, 4096) == -1) {
+            lprintf(LOG_ERROR, "Failed to load RIM-file...\n");
+            exit(1);
+        }
+    } else {
+        if (load_bin(f, offset, core, 4096) == -1) {
+            lprintf(LOG_ERROR, "Failed to load BIN-file...\n");
+            exit(1);
+        }
     }
 
     for (i = 0; i < 4096; i++) {
@@ -139,13 +151,14 @@ int
 main(int argc, char **argp) {
     args a;
 
+    a.mode_rim = 0;
     a.offset = 0;
     a.tape = NULL;
 
     argp_parse(&a_argp, argc, argp, 0, NULL, &a);
 
     printf("Log level: %i\n", global_log_level);
-    dump(a.tape, a.offset);
+    dump(a.tape, a.offset, a.mode_rim);
 
     return 0;
 }
