@@ -46,21 +46,25 @@ lprintf(log_level_t level, const char *fmt, ...) {
     if (level < global_log_level)
         return;
 
-    va_list ap;
+    va_list ap1;
+    va_list ap2;
     char *msg;
     int len;
 
-    va_start(ap, fmt);
-    len = vsnprintf(NULL, 0, fmt, ap);
+    va_start(ap1, fmt);
+    va_copy(ap2, ap1);
+
+    len = vsnprintf(NULL, 0, fmt, ap1);
 
     msg = malloc(len + 1);
     if (msg) {
-        vsnprintf(msg, len + 1, fmt, ap);
+        vsnprintf(msg, len + 1, fmt, ap2);
         log_sink(level, msg, log_data);
         free(msg);
     }
 
-    va_end(ap);
+    va_end(ap2);
+    va_end(ap1);
 }
 
 void
