@@ -37,7 +37,7 @@
 #include <time.h>
 
 #include <libpdp12/cpu.h>
-#include <libpdp12utils/rim.h>
+#include <libpdp12utils/bin.h>
 #include <libpdp12utils/log.h>
 
 #include "shell.h"
@@ -102,7 +102,7 @@ cmd_load(int argc, char **argp, void *data) {
     if (argc >= 3)
         offset = atoi(argp[2]);
 
-    words = load_rim(f, offset, cpu->core, CPU_CORE_SIZE);
+    words = load_bin(f, offset, cpu->core, CPU_CORE_SIZE);
     if (words == -1) {
         lprintf(LOG_ERROR,
                 "Failed to load RIM-file...\n"
