@@ -109,7 +109,7 @@ load_bin(FILE *file, int offset, int *core, int core_size) {
 		ungetc(c2, file);
 
 	    if ((c1 & BIN_TYPE_MASK) != 0)
-		lprintf(LOG_WARNING, "Potential error while decoding origin\n");
+		lprintf(LOG_WARNING, "Potential error while decoding instruction\n");
 
 	    /* Now, this is either an instruction or a checksum, it
 	     * all depends on the proceeding bytes */
