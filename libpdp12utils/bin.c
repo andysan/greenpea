@@ -157,11 +157,20 @@ load_bin(FILE *file, int offset, int *core, int core_size) {
 	    lprintf(LOG_ERROR, "Unexpected trailer character.\n");
 	    return -1;
 	case BIN_TYPE_FIELD:
-	    lprintf(LOG_ERROR, "Unsupported processing directive.\n");
-	    return -1;
+	    lprintf(LOG_WARNING, "Skipping unhandled field processing directive (%.4o)\n", c0);
+            ungetc(c1, file);
+	    break;
 	}
 
-        checksum += (unsigned int)c0 + (unsigned int)c1;
+        switch (c0 & BIN_TYPE_MASK) {
+        case BIN_TYPE_ORIGIN:
+        case BIN_TYPE_INSTR:
+            checksum += (unsigned int)c0 + (unsigned int)c1;
+            break;
+        default:
+            break;
+        }
+            
     };
 
     lprintf(LOG_ERROR, "Premature end of file.\n");
