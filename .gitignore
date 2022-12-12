@@ -1,3 +1,8 @@
+#
+# SPDX-FileCopyrightText: Copyright 2010 Andreas Sandberg <andreas@sandberg.uk>
+#
+# SPDX-License-Identifier: 0BSD
+#
 *~
 *.o
 Makefile

@@ -1,3 +1,8 @@
+#
+# SPDX-FileCopyrightText: Copyright 2006, 2007, 2010, 2022 Andreas Sandberg <andreas@sandberg.uk>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 AC_INIT([greenpea],[0.1])
 AM_INIT_AUTOMAKE
 

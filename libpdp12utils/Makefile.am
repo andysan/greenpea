@@ -1,3 +1,8 @@
+#
+# SPDX-FileCopyrightText: Copyright 2006-2007, 2011 Andreas Sandberg <andreas@sandberg.uk>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 noinst_LIBRARIES = libpdp12utils.a
 
 libpdp12utils_a_SOURCES =		\
