@@ -6,7 +6,20 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-AC_CHECK_HEADERS([argp.h])
+AC_CHECK_HEADERS([argp.h], [
+  AC_SEARCH_LIBS([argp_parse], [argp], [
+    have_argp=true
+  ], [
+    have_argp=false
+  ])
+], [
+  have_argp=false
+])
+
+AM_CONDITIONAL([HAVE_ARGP], $have_argp)
+if ! $have_argp; then
+    AC_MSG_WARN([Working argp implementation not found, disabling command line tools.])
+fi
 
 AC_ARG_ENABLE(readline,
 		AS_HELP_STRING([--disable-readline], [disables the use of GNU Readline]))
@@ -28,7 +41,7 @@ if test x$enable_readline != xno; then
    VL_LIB_READLINE
 fi
 
-CFLAGS="-Wall -Werror"
+CFLAGS="${CFLAGS} -Wall -Werror"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile \

@@ -1,5 +1,10 @@
-bin_PROGRAMS = pdp12c
-noinst_PROGRAMS = paperdump
+bin_PROGRAMS =
+noinst_PROGRAMS =
+
+if HAVE_ARGP
+  bin_PROGRAMS += pdp12c
+  noinst_PROGRAMS += paperdump
+endif
 
 pdp12c_SOURCES =			\
 	shell.c		shell.h		\
@@ -17,4 +22,4 @@ pdp12c_CFLAGS =  -I$(top_srcdir) $(AM_CFLAGS) $(SDL_CFLAGS)
 paperdump_SOURCES = paperdump.c
 paperdump_LDADD = 					\
 	$(top_builddir)/libpdp12utils/libpdp12utils.a
-paperdump_CFLAGS = -I$(top_srcdir)
+paperdump_CFLAGS = -I$(top_srcdir) $(AM_CFLAGS)
