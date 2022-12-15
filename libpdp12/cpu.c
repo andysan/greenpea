@@ -43,7 +43,7 @@ cpu_create() {
     cpu->vr12 = NULL;
     cpu->asr33 = NULL;
 
-    memset(cpu->core, 0, CPU_CORE_SIZE);
+    memset(cpu->core, 0, sizeof(cpu->core[0]) * CPU_CORE_SIZE);
 
     return cpu;
 }
