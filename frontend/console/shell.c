@@ -233,7 +233,8 @@ static const parser_command cmds[] = {
 void
 shell_script(cpu_instance_t *cpu, const char *name) {
     FILE *script;
-    char *cmd = malloc(MAX_SCRIPT_LINE_LENGTH);
+    char *buf = malloc(MAX_SCRIPT_LINE_LENGTH);
+    char *cmd;
     cmd_data_t cd;
 
     cd.cpu = cpu;
@@ -242,11 +243,16 @@ shell_script(cpu_instance_t *cpu, const char *name) {
     script = fopen(name, "r");
     if (script) {
         do {
-            fgets(cmd, MAX_SCRIPT_LINE_LENGTH, script);
-            if (!feof(script)) {
+            cmd = fgets(buf, MAX_SCRIPT_LINE_LENGTH, script);
+            if (cmd) {
                 lprintf(LOG_NORMAL, "PDP12>%s", cmd);
                 parser_exec(cmds, &cd, cmd);
+            } else if (feof(script)) {
+                break;
             } else {
+                /* fgets failed and it wasn't an EOF, so it must have
+                 * been an error. */
+                lprintf(LOG_ERROR, "Failed to read script\n");
                 break;
             }
         } while (!cd.end);
@@ -256,7 +262,7 @@ shell_script(cpu_instance_t *cpu, const char *name) {
                 name, strerror(errno));
     }
 
-    free(cmd);
+    free(buf);
 }
 
 void

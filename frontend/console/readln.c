@@ -15,6 +15,7 @@
 
 char *readln_basic(const char *prompt) {
     char *cmd;
+    char *ret;
 
     if (prompt && *prompt)
         printf("%s", prompt);
@@ -26,8 +27,11 @@ char *readln_basic(const char *prompt) {
     if (!cmd)
         return NULL;
 
-    fgets(cmd, MAX_CMD_LENGTH, stdin);
-    return cmd;
+    ret = fgets(cmd, MAX_CMD_LENGTH, stdin);
+    if (!ret)
+        free(cmd);
+
+    return ret;
 }
 /*
  * Local Variables:
